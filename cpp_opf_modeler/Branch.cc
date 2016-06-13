@@ -1,8 +1,9 @@
 #include "Branch.h"
 
 
-Branch::Branch()
+Branch::Branch():_attributes(BranchAttributes::NUM)
 {
+
 }
 
 

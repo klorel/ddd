@@ -19,7 +19,7 @@
 
 typedef double Number;
 typedef std::complex<double> ComplexNumber;
-
+typedef std::vector<ComplexNumber> ComplexNumbers;
 typedef std::pair<size_t, size_t> Index2;
 
 typedef std::map<size_t, Number> LinearTerm;
@@ -54,6 +54,11 @@ std::ostream & operator<<(std::ostream &, FunctionReal const &);
 std::ostream & operator<<(std::ostream &, FunctionComplex const &);
 std::ostream & operator<<(std::ostream &, Problem const &);
 std::ostream & operator<<(std::ostream &, Constraint const &);
+
+
+enum BranchAttributes {
+	Z, YOR, YOEX, PSTOR, PSTEX, NUM
+};
 
 #include "algebra.h"
 
