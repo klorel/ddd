@@ -56,9 +56,6 @@ std::ostream & operator<<(std::ostream &, Problem const &);
 std::ostream & operator<<(std::ostream &, Constraint const &);
 
 
-enum BranchAttributes {
-	Z, YOR, YOEX, PSTOR, PSTEX, NUM
-};
 
 #include "algebra.h"
 

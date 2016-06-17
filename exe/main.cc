@@ -1,8 +1,10 @@
 
 #include "common.h"
 #include "Problem.h"
+#include "OpfElement.h"
 
 int main(int argc, char** argv){
+	ElementT<branch> b;
 	Problem p;
 	//size_t n(10);
 	//p.ivariablePool("v", n);
