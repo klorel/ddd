@@ -7,7 +7,7 @@ MESSAGE("CMAKE_SOURCE_DIR : ${CMAKE_SOURCE_DIR}")
 
 SET(EXECUTABLE_OUTPUT_PATH	${CMAKE_BINARY_DIR})
 SET(   LIBRARY_OUTPUT_PATH	${CMAKE_BINARY_DIR})
- 
+
 IF( WIN32 )
 
 	SET( CMAKE_CONFIGURATION_TYPES "Debug;Release;" CACHE STRING "limited configs" FORCE)
@@ -27,9 +27,11 @@ ELSE()
 	SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-strict-aliasing -Wno-unused-parameter")
 ENDIF( WIN32 )
 
-INCLUDE_DIRECTORIES( cpp_qp_modeler cpp_opf_modeler exe)
+
+SET(EIGEN_DIR C:/Users/Manuel/eigen/Eigen)
+MESSAGE("EIGEN_DIR is ${EIGEN_DIR}")
+INCLUDE_DIRECTORIES( cpp_qp_modeler cpp_opf_modeler exe ${EIGEN_DIR})
 
 ADD_SUBDIRECTORY(cpp_qp_modeler)
 ADD_SUBDIRECTORY(cpp_opf_modeler)
 ADD_SUBDIRECTORY(exe)
-

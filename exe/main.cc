@@ -3,9 +3,15 @@
 #include "Problem.h"
 #include "OpfElement.h"
 
-int main(int argc, char** argv){
-	ElementT<branch> b;
-	Problem p;
+#include "test_cholesky.h"
+
+int main(int argc, char** argv) {
+
+	test_cholesky(argc, argv);
+
+	//Eigen::NaturalOrdering
+	//ElementT<branch> b;
+	//Problem p;
 	//size_t n(10);
 	//p.ivariablePool("v", n);
 

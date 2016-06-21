@@ -35,9 +35,10 @@ public:
 
 	void clear();
 
-
 	void print(std::ostream & stream, Problem const &)const;
 	void print(std::ostream & stream)const;
+
+	void addSparsityPattern(SparsityPattern &)const;
 private:
 	mutable NumberPtr _c;
 	mutable LinearTermPtr _l;

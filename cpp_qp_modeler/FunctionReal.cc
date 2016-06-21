@@ -200,3 +200,11 @@ void FunctionReal::print(std::ostream & stream)const {
 		stream << format(kvp.second) << "x[" << kvp.first.first << "]" << "x[" << kvp.first.second << "]";
 }
 
+
+
+void FunctionReal::addSparsityPattern(SparsityPattern & sparsityPattern)const{
+	for (auto const & kvp : quadratic()) {
+		sparsityPattern[kvp.first.first].insert(kvp.first.second);
+		sparsityPattern[kvp.first.second].insert(kvp.first.first);
+	}
+}

@@ -32,6 +32,8 @@ public:
 	FunctionReal const & minimize()const;
 
 	void print(std::ostream &)const;
+public:
+	void addSparsityPattern(SparsityPattern & sparsityPattern)const;
 private:
 	StrVector _names;
 	Str2Int _pools;

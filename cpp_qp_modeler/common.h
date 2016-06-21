@@ -4,20 +4,27 @@
 #include <set>
 #include <list>
 #include <vector>
+#include <map>
 #include <string>
 
 #include <iostream>
+#include <iomanip>
 #include <ostream>
 #include <sstream>
 
-
-
-#include <algorithm>
+#include <cmath>
 #include <memory>
+#include <algorithm>
+#include <random>
 #include <complex>
 #include <stdexcept>
+#include <functional>
 
 typedef double Number;
+
+typedef std::vector<Number> NumberVector;
+typedef std::vector<size_t> PosIntVector;
+
 typedef std::complex<double> ComplexNumber;
 typedef std::vector<ComplexNumber> ComplexNumbers;
 typedef std::pair<size_t, size_t> Index2;
@@ -54,6 +61,20 @@ std::ostream & operator<<(std::ostream &, FunctionReal const &);
 std::ostream & operator<<(std::ostream &, FunctionComplex const &);
 std::ostream & operator<<(std::ostream &, Problem const &);
 std::ostream & operator<<(std::ostream &, Constraint const &);
+
+
+
+typedef std::vector<int, int> Pattern;
+
+
+typedef std::set<int> IntSet;
+typedef std::shared_ptr<IntSet> IntSetPtr;
+
+typedef std::vector<IntSet> SparsityPattern;
+
+typedef std::multimap<int, int, std::greater<int> > Labels;
+typedef Labels::iterator ItLabel;
+typedef std::vector<ItLabel> ItLabels;
 
 
 

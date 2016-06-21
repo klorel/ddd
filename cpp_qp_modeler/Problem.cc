@@ -111,3 +111,8 @@ void Problem::print(std::ostream &stream)const {
 	}
 
 }
+void Problem::addSparsityPattern(SparsityPattern & sparsityPattern)const {
+	sparsityPattern.resize(_names.size());
+	for (auto const & ctr : _constraints)
+		ctr.addSparsityPattern(sparsityPattern);
+}
