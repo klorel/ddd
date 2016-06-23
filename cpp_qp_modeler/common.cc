@@ -5,7 +5,7 @@
 #include "Constraint.h"
 
 
-Index2 get_index(size_t i, size_t j){
+Index2 get_index(int i, int j){
 	return std::make_pair(std::min(i, j), std::max(i, j));
 }
 bool isZero(Number value){
@@ -55,5 +55,12 @@ std::ostream & operator<<(std::ostream & stream, Problem const & rhs) {
 }
 std::ostream & operator<<(std::ostream & stream, Constraint const & rhs) {
 	rhs.print(stream);
+	return stream;
+}
+
+
+std::ostream & printAlpha(std::ostream & stream, IntVector const & rhs){
+	for (size_t i(0); i < rhs.size(); ++i)
+		stream << rhs[i];
 	return stream;
 }

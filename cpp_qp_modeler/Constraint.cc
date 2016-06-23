@@ -33,9 +33,13 @@ void Constraint::print(std::ostream & stream)const {
 	stream << lb() << " <= " << f() << " <= " << ub();
 }
 void Constraint::print(std::ostream & stream, Problem const & problem)const {
-	stream << lb() << " <= ";
+	if (lb() == ub())
+		stream << lb() << " = ";
+	else if (lb() > -1e20)
+		stream << lb() << " <= ";
 	f().print(stream, problem);
-	stream << " <= " << ub();
+	if (lb() != ub() && ub() < 1e20)
+		stream << " <= " << ub();
 
 }
 void Constraint::addSparsityPattern(SparsityPattern & sparsityPattern)const {

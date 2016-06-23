@@ -28,7 +28,8 @@ ELSE()
 ENDIF( WIN32 )
 
 
-SET(EIGEN_DIR C:/Users/Manuel/eigen/Eigen)
+# SET(EIGEN_DIR C:/Users/Manuel/eigen/Eigen)
+SET(EIGEN_DIR D:/Eigen)
 MESSAGE("EIGEN_DIR is ${EIGEN_DIR}")
 INCLUDE_DIRECTORIES( cpp_qp_modeler cpp_opf_modeler exe ${EIGEN_DIR})
 

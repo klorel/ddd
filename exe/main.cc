@@ -4,10 +4,73 @@
 #include "OpfElement.h"
 
 #include "test_cholesky.h"
+#include "RegisteredInstance.h"
+
+#include "MomentGenerator.h"
 
 int main(int argc, char** argv) {
+	int n(2);
+	int d(2);
+	if (argc >= 2){
+		std::stringstream buffer(argv[1]);
+		buffer >> n;
+	}
+	if (argc >= 3){
+		std::stringstream buffer(argv[2]);
+		buffer >> d;
+	}
+	MomentGenerator generator(n,d);
+	generator.build();
+	return 0;
 
-	test_cholesky(argc, argv);
+	AvailableInstances id(AvailableInstances::SIZE);
+	std::cout << "argc = " << argc << std::endl;
+	if (argc >= 2){
+		std::stringstream buffer(argv[1]);
+		size_t i;
+		buffer >> i;
+		id = static_cast<AvailableInstances>(i);
+	}
+	if (id == AvailableInstances::SIZE){
+		RegisteredInstance::PrintAvailable();
+		return 0;
+	}
+	RegisteredInstance instance(id);
+	Problem problem;
+	instance.pqFormulation(problem);
+	//std::cout << "pq formulation : " << std::endl << problem << std::endl;
+	SparsityPattern sparsityPattern;
+	problem.addSparsityPattern(sparsityPattern);
+	//for (size_t n(0); n < problem.nvars(); ++n){
+	//	if (!sparsityPattern[n].empty()){
+	//		std::cout << problem.name(n) << " : ";
+	//		for (auto const & m : sparsityPattern[n])
+	//			std::cout << problem.name(m) << " ";
+	//		std::cout << std::endl;
+	//	}
+	//}
+	SparseMatrix matrix;
+	build(sparsityPattern, matrix);
+	IntSetPtrSet cliqueDecomposition;
+	build(matrix, cliqueDecomposition);	
+
+	size_t total_size(0);
+	size_t max_size(0);
+	for (auto const & clique : cliqueDecomposition){
+		total_size += clique->size();
+		max_size = std::max(max_size, clique->size());
+	}
+	std::cout << "total_size is " << total_size << std::endl;
+	//for (auto const & clique : cliqueDecomposition){
+	//	for (auto const & i : *clique){
+	//		std::cout << problem.name(i) << " ";
+	//	}
+	//	std::cout << std::endl;
+	//}
+	std::cout << "matrix.size() is " << matrix.cols() << std::endl;
+	std::cout << "max_size is " << max_size << std::endl;
+	std::cout << "nb clique is " << cliqueDecomposition.size() << std::endl;
+	//test_cholesky(argc, argv);
 
 	//Eigen::NaturalOrdering
 	//ElementT<branch> b;

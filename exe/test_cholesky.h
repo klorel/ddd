@@ -26,3 +26,7 @@ void permutation(SparseMatrix const & input, SparseMatrix & result);
 void work_on(SparseMatrix const & sm, int & n_cliques, int & max_cliques);
 
 int test_cholesky(int argc, char** argv);
+
+void build(SparsityPattern & input, SparseMatrix & output);
+
+void build(SparseMatrix & input, IntSetPtrSet & output);

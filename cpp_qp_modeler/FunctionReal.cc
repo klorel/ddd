@@ -143,7 +143,7 @@ void FunctionReal::add(Number value, Number factor) {
 	constant() += value*factor;
 }
 
-void FunctionReal::add(size_t key, Number value, Number factor) {
+void FunctionReal::add(int key, Number value, Number factor) {
 	LinearTerm::iterator it(linear().find(key));
 	if (it == linear().end()) {
 		linear()[key] = value*factor;
@@ -156,7 +156,7 @@ void FunctionReal::add(size_t key, Number value, Number factor) {
 	}
 }
 
-void FunctionReal::add(size_t index1, size_t index2, Number value, Number factor) {
+void FunctionReal::add(int index1, int index2, Number value, Number factor) {
 	add(get_index(index1, index2), value, factor);
 }
 

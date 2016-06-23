@@ -43,7 +43,7 @@ private:
 	mutable NumberPtr _c;
 	mutable LinearTermPtr _l;
 	mutable QuadraticTermPtr _q;
-private:
+public:
 	void operator+=(FunctionReal const &);
 	void operator-=(FunctionReal const &);
 	void operator*=(FunctionReal const &);
@@ -52,8 +52,8 @@ private:
 	void allocate();
 
 	void add(Number value, Number factor);
-	void add(size_t index, Number value, Number factor);
-	void add(size_t index1, size_t index2, Number value, Number factor);
+	void add(int index, Number value, Number factor);
+	void add(int index1, int index2, Number value, Number factor);
 
 	void add(LinearTerm::value_type const &, Number factor);
 	void add(QuadraticTerm::value_type const &, Number factor);
