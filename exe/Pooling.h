@@ -3,6 +3,10 @@
 
 #include "common.h"
 class Pooling;
+enum PoolingFormulation{
+	PQ,
+	Q
+};
 class Pooling {
 public:
 	class Structure{
@@ -23,6 +27,8 @@ public:
 	};
 public:
 	void pqFormulation(Problem & result)const;
+	void qFormulation(Problem & result)const;
+	void pFormulation(Problem & result)const;
 public:
 	Pooling(size_t n = 0, size_t k = 0);
 	virtual ~Pooling();

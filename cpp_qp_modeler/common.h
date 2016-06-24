@@ -103,7 +103,5 @@ public:
 
 typedef std::set<IntSetPtr, IntSetPredicate> IntSetPtrSet;
 
-
-
 #include "algebra.h"
 

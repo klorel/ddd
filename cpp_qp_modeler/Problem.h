@@ -14,7 +14,10 @@ public:
 public:
 	std::string & name(int);
 	std::string const & name(int)const;
+	std::string & ctrname(int);
+	std::string const &ctrname(int)const;
 
+	Constraint ctr(int key);
 	Constraint ctr(std::string const &name, int i);
 	Constraint ctr(std::string const &name, int i1, int i2);
 	Constraint ctr(std::string const &name1, IntPair const &);
@@ -57,6 +60,7 @@ public:
 	int nctrs()const;
 public:
 	void addSparsityPattern(SparsityPattern & sparsityPattern)const;
+	void addSupport(SparsityPattern & sparsityPattern)const;
 private:
 	StrPtrVector _varnames;
 	StrPtrVector _ctrnames;

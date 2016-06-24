@@ -9,19 +9,19 @@
 #include "MomentGenerator.h"
 
 int main(int argc, char** argv) {
-	int n(2);
-	int d(2);
-	if (argc >= 2){
-		std::stringstream buffer(argv[1]);
-		buffer >> n;
-	}
-	if (argc >= 3){
-		std::stringstream buffer(argv[2]);
-		buffer >> d;
-	}
-	MomentGenerator generator(n,d);
-	generator.build();
-	return 0;
+	//int n(2);
+	//int d(2);
+	//if (argc >= 2){
+	//	std::stringstream buffer(argv[1]);
+	//	buffer >> n;
+	//}
+	//if (argc >= 3){
+	//	std::stringstream buffer(argv[2]);
+	//	buffer >> d;
+	//}
+	//MomentGenerator generator(n,d);
+	//generator.build();
+	//return 0;
 
 	AvailableInstances id(AvailableInstances::SIZE);
 	std::cout << "argc = " << argc << std::endl;
@@ -31,13 +31,21 @@ int main(int argc, char** argv) {
 		buffer >> i;
 		id = static_cast<AvailableInstances>(i);
 	}
+	int useP(false);
+	if (argc >= 3){
+		std::stringstream buffer(argv[2]);
+		buffer >> useP;
+	}
 	if (id == AvailableInstances::SIZE){
 		RegisteredInstance::PrintAvailable();
 		return 0;
 	}
 	RegisteredInstance instance(id);
 	Problem problem;
-	instance.pqFormulation(problem);
+	if (useP)
+		instance.pFormulation(problem);
+	else
+		instance.pqFormulation(problem);
 	//std::cout << "pq formulation : " << std::endl << problem << std::endl;
 	SparsityPattern sparsityPattern;
 	problem.addSparsityPattern(sparsityPattern);
@@ -49,10 +57,14 @@ int main(int argc, char** argv) {
 	//		std::cout << std::endl;
 	//	}
 	//}
+	//std::cout << problem << std::endl;
+
 	SparseMatrix matrix;
 	build(sparsityPattern, matrix);
+
+	//std::cout << matrix << std::endl;
 	IntSetPtrSet cliqueDecomposition;
-	build(matrix, cliqueDecomposition);	
+	build(matrix, cliqueDecomposition);
 
 	size_t total_size(0);
 	size_t max_size(0);
@@ -61,15 +73,30 @@ int main(int argc, char** argv) {
 		max_size = std::max(max_size, clique->size());
 	}
 	std::cout << "total_size is " << total_size << std::endl;
-	//for (auto const & clique : cliqueDecomposition){
-	//	for (auto const & i : *clique){
-	//		std::cout << problem.name(i) << " ";
-	//	}
-	//	std::cout << std::endl;
-	//}
+	if (total_size < 50){
+		for (auto const & clique : cliqueDecomposition){
+			for (auto const & i : *clique){
+				std::cout << problem.name(i) << " ";
+			}
+			std::cout << std::endl;
+		}
+	}
 	std::cout << "matrix.size() is " << matrix.cols() << std::endl;
-	std::cout << "max_size is " << max_size << std::endl;
-	std::cout << "nb clique is " << cliqueDecomposition.size() << std::endl;
+	std::cout << "max_size      is " << max_size << std::endl;
+	std::cout << "nb clique     is " << cliqueDecomposition.size() << std::endl;
+	size_t max_support(0);
+	SparsityPattern support;
+	problem.addSupport(support);
+	for (int i(0); i<problem.nctrs()+1; ++i){
+		if (support[i].size()>max_support){
+			max_support = support[i].size();
+			if (i<problem.nctrs())
+				std::cout << "max support becomes " << max_support << ", ctr["<<i<<"]:" << problem.ctrname(i) << std::endl;
+			else
+				std::cout << "max support becomes " << max_support << ", obj " << std::endl;
+		}
+	}
+	std::cout << "max_support   is " << max_support << std::endl;
 	//test_cholesky(argc, argv);
 
 	//Eigen::NaturalOrdering

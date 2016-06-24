@@ -37,7 +37,8 @@ public:
 
 	void print(std::ostream & stream, Problem const &)const;
 	void print(std::ostream & stream)const;
-
+	
+	void addSupport(IntSet &)const;
 	void addSparsityPattern(SparsityPattern &)const;
 private:
 	mutable NumberPtr _c;

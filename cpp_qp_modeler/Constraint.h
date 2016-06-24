@@ -19,8 +19,6 @@ public:
 	void print(std::ostream &)const;
 	void print(std::ostream &, Problem const &)const;
 
-	void addSparsityPattern(SparsityPattern &)const;
-
 private:
 	FunctionReal _f;
 	NumberPtr _lb;

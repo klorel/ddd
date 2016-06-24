@@ -17,6 +17,16 @@ std::string  & Problem::name(int key){
 std::string const & Problem::name(int key)const{
 	return *_varnames[key];
 }
+std::string & Problem::ctrname(int key){
+	return *_ctrnames[key];
+}
+std::string const &Problem::ctrname(int key)const{
+	return *_ctrnames[key];
+}
+
+Constraint Problem::ctr(int key){
+	return _constraints[key];
+}
 
 FunctionReal Problem::variable(int i)const{
 	FunctionReal result;
@@ -176,15 +186,25 @@ void Problem::print(std::ostream &stream)const {
 }
 
 void Problem::addSparsityPattern(SparsityPattern & sparsityPattern)const {
-	sparsityPattern.resize(_varnames.size());
+	sparsityPattern.resize(nvars());
+	//minimize().addSparsityPattern(sparsityPattern);
 	for (auto const & ctr : _constraints)
-		ctr.addSparsityPattern(sparsityPattern);
+		ctr.f().addSparsityPattern(sparsityPattern);
+}
+
+void Problem::addSupport(SparsityPattern & sparsityPattern)const {
+	sparsityPattern.assign(nctrs()+1, IntSet());
+	minimize().addSupport(sparsityPattern[nctrs()]);	
+	for (int i(0); i < _constraints.size(); ++i){
+		_constraints[i].f().addSupport(sparsityPattern[i]);
+		++i;
+	}
 }
 
 
 int Problem::nvars()const{
-	return _varnames.size();
+	return static_cast<int>(_varnames.size());
 }
 int Problem::nctrs()const{
-	return _ctrnames.size();
+	return static_cast<int>(_ctrnames.size());
 }

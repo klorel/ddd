@@ -200,9 +200,31 @@ void FunctionReal::print(std::ostream & stream)const {
 		stream << format(kvp.second) << "x[" << kvp.first.first << "]" << "x[" << kvp.first.second << "]";
 }
 
-
+void FunctionReal::addSupport(IntSet & support)const{
+	for (auto const & kvp : linear()) {
+		support.insert(kvp.first);
+	}
+	for (auto const & kvp : quadratic()) {
+		support.insert(kvp.first.second);
+		support.insert(kvp.first.first);
+	}
+}
 
 void FunctionReal::addSparsityPattern(SparsityPattern & sparsityPattern)const{
+	IntSet support;
+	//for (auto const & kvp : linear())
+	//	support.insert(kvp.first);
+	//for (auto const & kvp : quadratic()) {
+	//	support.insert(kvp.first.first);
+	//	support.insert(kvp.first.second);
+	//}
+
+	//for (int i : support){
+	//	for (int j : support){
+	//		sparsityPattern[i].insert(j);
+	//		sparsityPattern[j].insert(i);
+	//	}
+	//}
 	for (auto const & kvp : quadratic()) {
 		sparsityPattern[kvp.first.first].insert(kvp.first.second);
 		sparsityPattern[kvp.first.second].insert(kvp.first.first);

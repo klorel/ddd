@@ -42,6 +42,3 @@ void Constraint::print(std::ostream & stream, Problem const & problem)const {
 		stream << " <= " << ub();
 
 }
-void Constraint::addSparsityPattern(SparsityPattern & sparsityPattern)const {
-	f().addSparsityPattern(sparsityPattern);
-}
