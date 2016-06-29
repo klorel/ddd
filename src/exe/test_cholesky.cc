@@ -264,8 +264,9 @@ void build(SparsityPattern & input, SparseMatrix & output){
 	output.setFromTriplets(triplets.begin(), triplets.end());
 }
 
-void build(SparseMatrix & input, IntSetPtrSet & output){
+void build(SparseMatrix & input, IntPairSet & chordalExtension, IntSetPtrSet & output){
 	output.clear();
+	//std::cout << input << std::endl;
 	// compute the Cholesky decomposition of A
 	//Eigen::SimplicialLLT< SparseMatrix, Eigen::Lower, Eigen::NaturalOrdering<int> > lltof(pSm);
 	//Eigen::SimplicialLLT< SparseMatrix, Eigen::Lower, Eigen::COLAMDOrdering<int> > lltof(sm);
@@ -280,8 +281,10 @@ void build(SparseMatrix & input, IntSetPtrSet & output){
 	for (int i(0); i < p.cols(); ++i)
 		sequence.push_back(Triplet(i, 0, 1.0*i));
 	f.setFromTriplets(sequence.begin(), sequence.end());
+
+	std::cout << "p.cols() is " << p.cols() << std::endl;
+
 	Eigen::SparseMatrix<double> pf = p*f;
-	//std::cout << "p.cols() is " << p.cols() << std::endl;
 	//std::cout << "pf.outerSize() is " << pf.outerSize() << std::endl;
 	IntVector oldOrder(p.cols());
 	for (int k = 0; k < pf.outerSize(); ++k){
@@ -319,11 +322,13 @@ void build(SparseMatrix & input, IntSetPtrSet & output){
 	//std::cout << std::endl;
 	int const n(static_cast<int>(input.cols()));
 	SparsityPattern g(n);
+	chordalExtension.clear();
 	for (int i(0); i < n; ++i){
 		for (int j(0); j < i; ++j){
 			if (std::fabs(L.coeff(i, j))>1e-6){
 				g[i].insert(j);
 				g[j].insert(i);
+					chordalExtension.insert({oldOrder[i], oldOrder[j] });
 #if __MY_DEBUG__
 				std::cout << std::setw(6) << i;
 				std::cout << std::setw(6) << j;

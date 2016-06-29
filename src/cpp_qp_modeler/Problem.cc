@@ -24,7 +24,11 @@ std::string const &Problem::ctrname(int key)const{
 	return *_ctrnames[key];
 }
 
-Constraint Problem::ctr(int key){
+Constraint& Problem::ctr(int key) {
+	return _constraints[key];
+}
+
+Constraint const & Problem::ctr(int key) const{
 	return _constraints[key];
 }
 
@@ -47,13 +51,13 @@ FunctionReal Problem::variable(std::string const &name, int i1, int i2)const{
 FunctionReal Problem::variable(std::string const &name, IntPair const & i)const{
 	return variable(name, i.first, i.second);
 }
-Constraint Problem::ctr(std::string const &name, int i1){
+Constraint & Problem::ctr(std::string const &name, int i1){
 	return _constraints[idctr(name, i1)];
 }
-Constraint Problem::ctr(std::string const &name, int i1, int i2){
+Constraint & Problem::ctr(std::string const &name, int i1, int i2){
 	return _constraints[idctr(name, i1, i2)];
 }
-Constraint Problem::ctr(std::string const &name, IntPair const & i){
+Constraint & Problem::ctr(std::string const &name, IntPair const & i){
 	return ctr(name, i.first, i.second);
 }
 
@@ -81,6 +85,26 @@ Constraint Problem::ctr(std::string const &name, IntPair const & i){
 //	result.imag().add(id(name1, i2), 1, 1);
 //	return result;
 //}
+
+
+IndexedPool const & Problem::varpool(std::string const & name)const {
+	Str2Pool::const_iterator it(_varpools.find(name));
+	if (it == _varpools.end()) {
+		throw std::invalid_argument("var pool name was not found");
+	}
+	else {
+		return *it->second;
+	}
+}
+IndexedPool const & Problem::ctrpool(std::string const &name)const {
+	Str2Pool::const_iterator it(_ctrpools.find(name));
+	if (it == _ctrpools.end()) {
+		throw std::invalid_argument("ctr pool name was not found");
+	}
+	else {
+		return *it->second;
+	}
+}
 
 void Problem::newvarpool(std::string const & poolname, size_t ids) {
 	newpool(_varpools, _varnames, poolname, ids);
@@ -207,4 +231,29 @@ int Problem::nvars()const{
 }
 int Problem::nctrs()const{
 	return static_cast<int>(_ctrnames.size());
+}
+
+void Problem::removeInequality() {
+	IntSet slacks;
+	
+	for (int i(0); i < _constraints.size(); ++i) {
+		if(_constraints[i].sense()==RNG)
+			throw std::invalid_argument("in Problem::removeInequality, constraint is RNG");
+		if (_constraints[i].sense() != EQ) {
+			slacks.insert(i);
+		}
+	}
+	newvarpool("slack", slacks);
+	for (auto const ctr : slacks) {
+		FunctionReal s(variable("slack", ctr));
+		if (_constraints[ctr].sense() == GEQ) {
+			_constraints[ctr].f() -= s*s;
+			_constraints[ctr].ub() = _constraints[ctr].lb();
+		}
+		else {
+			_constraints[ctr].f() += s*s;
+			_constraints[ctr].lb() = _constraints[ctr].ub();
+		}
+	}
+
 }

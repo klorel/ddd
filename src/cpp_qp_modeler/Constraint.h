@@ -19,6 +19,7 @@ public:
 	void print(std::ostream &)const;
 	void print(std::ostream &, Problem const &)const;
 
+	Sense sense()const;
 private:
 	FunctionReal _f;
 	NumberPtr _lb;

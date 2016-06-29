@@ -17,10 +17,12 @@ public:
 	std::string & ctrname(int);
 	std::string const &ctrname(int)const;
 
-	Constraint ctr(int key);
-	Constraint ctr(std::string const &name, int i);
-	Constraint ctr(std::string const &name, int i1, int i2);
-	Constraint ctr(std::string const &name1, IntPair const &);
+	Constraint const &ctr(int key) const;
+
+	Constraint &ctr(int key);
+	Constraint &ctr(std::string const &name, int i);
+	Constraint &ctr(std::string const &name, int i1, int i2);
+	Constraint &ctr(std::string const &name1, IntPair const &);
 
 	FunctionReal variable(int i)const;
 	FunctionReal variable(std::string const &name, int i)const;
@@ -31,6 +33,9 @@ public:
 	//FunctionComplex variable(std::string const &name1, std::string const &name2, int i1)const;
 	//FunctionComplex variable(std::string const &name1, int i1, std::string const &name2, int i2)const;
 	
+
+	IndexedPool const & varpool(std::string const &)const;
+	IndexedPool const & ctrpool(std::string const &)const;
 
 	void newvarpool(std::string const &, size_t size);
 	void newvarpool(std::string const & poolname, IntSet const & ids);
@@ -58,6 +63,8 @@ public:
 
 	int nvars()const;
 	int nctrs()const;
+
+	void removeInequality();
 public:
 	void addSparsityPattern(SparsityPattern & sparsityPattern)const;
 	void addSupport(SparsityPattern & sparsityPattern)const;

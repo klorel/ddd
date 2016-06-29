@@ -30,14 +30,6 @@ std::string format(Number value){
 	}
 	return buffer.str();
 }
-Number PosInfinity(){
-	return 1e20;
-}
-
-Number NegInfinity(){
-	return -1e20;
-}
-
 
 std::ostream & operator<<(std::ostream & stream, FunctionReal const & rhs) {
 	rhs.print(stream);
@@ -63,4 +55,11 @@ std::ostream & printAlpha(std::ostream & stream, IntVector const & rhs){
 	for (size_t i(0); i < rhs.size(); ++i)
 		stream << rhs[i];
 	return stream;
+}
+
+Number posInfinity() {
+	return 1e20;
+}
+Number negInfinity() {
+	return -1e20;
 }

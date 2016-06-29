@@ -6,6 +6,7 @@
 #include <vector>
 #include <map>
 #include <string>
+#include <array>
 
 #include <iostream>
 #include <iomanip>
@@ -53,10 +54,6 @@ bool isZero(NumberPtr const & value);
 
 std::string format(Number value);
 
-Number PosInfinity();
-Number NegInfinity();
-
-
 class Problem;
 class FunctionReal;
 class FunctionComplex;
@@ -66,7 +63,6 @@ typedef std::vector<Constraint> Constraints;
 
 std::ostream & printAlpha(std::ostream & stream, IntVector const & rhs);
 
-std::ostream & operator<<(std::ostream & stream, IntVector const & rhs);
 std::ostream & operator<<(std::ostream &, FunctionReal const &);
 std::ostream & operator<<(std::ostream &, FunctionComplex const &);
 std::ostream & operator<<(std::ostream &, Problem const &);
@@ -94,14 +90,28 @@ typedef std::multimap<int, int, std::greater<int> > Labels;
 typedef Labels::iterator ItLabel;
 typedef std::vector<ItLabel> ItLabels;
 
-class IntSetPredicate{
+class IntSetPredicate {
 public:
-	bool operator()(IntSetPtr const & lhs, IntSetPtr const & rhs)const{
+	bool operator()(IntSetPtr const & lhs, IntSetPtr const & rhs)const {
 		return *lhs < *rhs;
 	}
 };
 
 typedef std::set<IntSetPtr, IntSetPredicate> IntSetPtrSet;
+
+enum Sense {
+	LEQ, EQ, GEQ, RNG
+};
+
+Number posInfinity();
+Number negInfinity();
+
+
+#include <SparseCholesky>
+
+typedef Eigen::SparseMatrix<double, 0, int> SparseMatrix;
+typedef Eigen::Triplet<double> Triplet;
+typedef std::vector<Triplet> Triplets;
 
 #include "algebra.h"
 

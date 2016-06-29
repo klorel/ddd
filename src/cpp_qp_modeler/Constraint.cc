@@ -1,7 +1,7 @@
 #include "Constraint.h"
 
 
-Constraint::Constraint() :_lb(new Number(NegInfinity())), _ub(new Number(PosInfinity())), _f()
+Constraint::Constraint() :_lb(new Number(negInfinity())), _ub(new Number(posInfinity())), _f()
 {
 }
 
@@ -35,10 +35,20 @@ void Constraint::print(std::ostream & stream)const {
 void Constraint::print(std::ostream & stream, Problem const & problem)const {
 	if (lb() == ub())
 		stream << lb() << " = ";
-	else if (lb() > -1e20)
+	else if (lb() > negInfinity())
 		stream << lb() << " <= ";
 	f().print(stream, problem);
-	if (lb() != ub() && ub() < 1e20)
+	if (lb() != ub() && ub() < posInfinity())
 		stream << " <= " << ub();
 
+}
+Sense Constraint::sense()const {
+	if (lb() == ub())
+		return EQ;
+	else if (lb() > negInfinity() && ub() >= posInfinity())
+		return GEQ;
+	else if (ub() < posInfinity() && lb() <= negInfinity())
+		return LEQ;
+	else
+		return RNG;
 }

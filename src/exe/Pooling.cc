@@ -407,7 +407,7 @@ void Pooling::pFormulation(Problem & result)const{
 	}
 	// 
 	result.newctrpool("s_cost", structure.S);
-	result.newctrpool("i_cost", structure.T);
+	result.newctrpool("i_cost", structure.I);
 
 	result.newvarpool("s_cost", structure.S);
 	result.newvarpool("i_cost", structure.I);
@@ -492,6 +492,7 @@ void Pooling::pFormulation(Problem & result)const{
 			result.ctr("attribute", t, k).f() -= q(t,k)*result.variable("f", i, t);
 		}
 	}
+
 }
 
 void Pooling::qFormulation(Problem & result)const{

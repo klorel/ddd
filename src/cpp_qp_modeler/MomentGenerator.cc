@@ -32,17 +32,15 @@ void MomentGenerator::build(){
 	Int2Int alpha;
 	_alphas.clear();
 	bool stop(false);
-	typedef std::pair<IntVector, int> AlphaSum;
-	typedef std::list<AlphaSum> AlphaSums;
-	AlphaSums alphaSums({ { IntVector(_nvariables, 0), 0 } });
+	AlphaSumPtrList alphaSums({ AlphaSumPtr(new AlphaSum({ IntVector(_nvariables, 0), 0 }))});
 	int p(0);
 	while (p<_nvariables){		
-		AlphaSums new_alpha_sum;
+		AlphaSumPtrList new_alpha_sum;
 		for (auto const & kvp : alphaSums){
-			for (int i(0); i <= _order - kvp.second;++i){
-				new_alpha_sum.push_back(kvp);
-				new_alpha_sum.back().first[p] = i;
-				new_alpha_sum.back().second += i;
+			for (int i(0); i <= _order - kvp->second;++i){
+				new_alpha_sum.push_back(AlphaSumPtr(new AlphaSum(*kvp)));
+				new_alpha_sum.back()->first[p] = i;
+				new_alpha_sum.back()->second += i;
 			}
 		}	
 		alphaSums = new_alpha_sum;
