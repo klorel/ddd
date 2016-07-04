@@ -98,7 +98,7 @@ void SdpProblem::addSparsityPattern(SparsityPattern & result)const {
 		int const block(coef.first[1]);
 		int const bi(coef.first[2]);
 		int const bj(coef.first[3]);
-		int const i(_blocks[block - 1]._begin + bi- 1);
+		int const i(_blocks[block - 1]._begin + bi - 1);
 		int const j(_blocks[block - 1]._begin + bj - 1);
 		result[i].insert(j);
 		result[j].insert(i);
@@ -112,7 +112,7 @@ void SdpProblem::sparsesdp(SdpProblem & output) {
 	SparseMatrix matrix;
 	build(sparsityPattern, matrix);
 
-	std::cout << matrix << std::endl;
+	//std::cout << matrix << std::endl;
 	IntSetPtrSet cliqueDecomposition;
 	IntPairSet chordalExtension;
 	build(matrix, chordalExtension, cliqueDecomposition);
@@ -160,10 +160,13 @@ void SdpProblem::sparsesdp(SdpProblem & output) {
 
 		if (i != j) {
 			IntPair const edge({ i,j });
-			int const r(chordalToClique.find(edge)->second.front());
-			int const newi(iToClique[i].find(r)->second);
-			int const newj(iToClique[j].find(r)->second);
-			output.add(ctr, r, std::min(newi, newj) + 1, std::max(newi, newj) + 1, kvp.second);
+			IntVector const & inter(chordalToClique.find(edge)->second);
+			if (!inter.empty()) {
+				int const r(chordalToClique.find(edge)->second.front());
+				int const newi(iToClique[i].find(r)->second);
+				int const newj(iToClique[j].find(r)->second);
+				output.add(ctr, r, std::min(newi, newj) + 1, std::max(newi, newj) + 1, kvp.second);
+			}
 		}
 		else {
 			int const r(iToClique[i].begin()->first);
@@ -171,25 +174,41 @@ void SdpProblem::sparsesdp(SdpProblem & output) {
 			output.add(ctr, r, newi + 1, newi + 1, kvp.second);
 		}
 	}
-	// coupling constraint
+	std::cout << "CHORDAL COUPLING" << std::endl;
 	for (auto const & frontier : chordalToClique) {
 		IntSet interClique;
-		int const i(frontier.first.first);
-		int const j(frontier.first.second);
-		int const r0(frontier.second.front());
-		int const i0(iToClique[i].find(r0)->second);
-		int const j0(iToClique[j].find(r0)->second);
-		for (auto const & r : frontier.second) {
-			if (r != r0) {
-				int const ctr(output.newy(0));
-				int const ir(iToClique[i].find(r)->second);
-				int const jr(iToClique[j].find(r)->second);
-				std::cout << "couling " << i0 << " - " << j0 << ",  " << r0 << " - " << r << std::endl;
-				output.add(ctr, r0, std::min(i0, j0)+1, std::max(i0, j0)+1, 1);
-				output.add(ctr, r, std::min(ir, jr)+1, std::max(ir, jr)+1, -1);
+		if (frontier.second.size() > 1) {
+			int const i(frontier.first.first);
+			int const j(frontier.first.second);
+			int const r0(frontier.second.front());
+			int const i0(iToClique[i].find(r0)->second);
+			int const j0(iToClique[j].find(r0)->second);
+
+			for (auto const & r : frontier.second) {
+				if (r != r0) {
+					int const ctr(output.newy(0));
+					int const ir(iToClique[i].find(r)->second);
+					int const jr(iToClique[j].find(r)->second);
+					//std::cout << r << "(";
+					//std::cout << std::setw(6) << ir;
+					//std::cout << ", ";
+					//std::cout << std::setw(6) << jr;
+					//std::cout << ")  ";
+					output.add(ctr, r0, std::min(i0, j0) + 1, std::max(i0, j0) + 1, 1);
+					output.add(ctr, r, std::min(ir, jr) + 1, std::max(ir, jr) + 1, -1);
+				}
+				else {
+					//std::cout << r0 << "(";
+					//std::cout << std::setw(6) << i0;
+					//std::cout << ", ";
+					//std::cout << std::setw(6) << j0;
+					//std::cout << ") with ";
+				}
 			}
+			//std::cout << std::endl;
 		}
 	}
+	std::cout << "DIAGONAL COUPLING" << std::endl;
 	// diagonal term
 	for (int i(0); i < nvars(); ++i) {
 		if (iToClique[i].size() > 1) {
@@ -200,12 +219,23 @@ void SdpProblem::sparsesdp(SdpProblem & output) {
 				if (ci != ci0) {
 					int const ctr(output.newy(0));
 					int const i(clique.second);
-					std::cout << "couling " << i0 << " - " << i << ",  " << ci0 << " - " << ci << std::endl;
-					output.add(ctr, ci0, i0+1, i0+1, 1);
-					output.add(ctr, ci, i+1, i+1, -1);
-
+					//std::cout << ci << "(";
+					//std::cout << std::setw(6) << i;
+					//std::cout << ", ";
+					//std::cout << std::setw(6) << i;
+					//std::cout << ")  ";
+					output.add(ctr, ci0, i0 + 1, i0 + 1, 1);
+					output.add(ctr, ci, i + 1, i + 1, -1);
+				}
+				else {
+					//std::cout << ci0 << "(";
+					//std::cout << std::setw(6) << i0;
+					//std::cout << ", ";
+					//std::cout << std::setw(6) << i0;
+					//std::cout << ") with ";
 				}
 			}
+			//std::cout << std::endl;
 		}
 	}
 
@@ -216,4 +246,26 @@ void SdpProblem::sparsesdp(SdpProblem & output) {
 	//	max_size = std::max(max_size, clique->size());
 	//}
 
+}
+
+
+std::ostream & SdpProblem::print(std::ostream & stream, std::string const &name) const {
+	int lastCtr(-1);
+	for (auto const & coef : _matrix) {
+		int const ctr(coef.first[0]);
+		int const block(coef.first[1]);
+		int const bi(coef.first[2]);
+		int const bj(coef.first[3]);
+		if (ctr != lastCtr) {
+			lastCtr = ctr;
+			stream << std::endl;
+			if (ctr != 0)
+				stream << "ctr[" << ctr << "] : " << _b[ctr-1] << " = ";
+			else
+				stream << "maximize : ";
+		}
+		stream << format(coef.second)<<" " << name << "["<< block << ", " << bi << ", " << bj << "]";
+	}
+	stream << std::endl;
+	return stream;
 }

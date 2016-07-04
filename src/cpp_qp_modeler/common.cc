@@ -9,7 +9,7 @@ Index2 get_index(int i, int j){
 	return std::make_pair(std::min(i, j), std::max(i, j));
 }
 bool isZero(Number value){
-	return std::fabs(value) < 1e-10;
+	return std::fabs(value)< 1e-10;
 }
 bool isZero(NumberPtr const & value){
 	return isZero(*value);

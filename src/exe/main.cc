@@ -147,18 +147,18 @@ int test_pooling(int argc, char**argv) {
 	//		std::cout << std::endl;
 	//	}
 	//}
-	//std::cout << "problem is "<<std::endl<<problem << std::endl;
+	std::cout << "problem is "<<std::endl<<problem << std::endl;
 	problem.removeInequality();
-	//std::cout << "removed inequality" << std::endl<< problem << std::endl;
+	std::cout << "removed inequality" << std::endl<< problem << std::endl;
 
 	SdpProblem sdp;
 	sdp.sdprelaxation(problem);
-	//sdp.print("sdprelaxation.dat");
-
+	sdp.print("sdprelaxation.dat");
+	sdp.print(std::cout, "X");
 	SdpProblem ssdp;
 	sdp.sparsesdp(ssdp);
 	ssdp.print("ssdp.dat");
-
+	//ssdp.print(std::cout, "Y");
 	return 0;
 }
 

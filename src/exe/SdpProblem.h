@@ -34,6 +34,8 @@ public:
 	void addSparsityPattern(SparsityPattern & result)const;
 
 	int nvars()const;
+
+	std::ostream & print(std::ostream &, std::string const & ) const;
 public:
 	NumberVector _b;
 	Matrix _matrix;
