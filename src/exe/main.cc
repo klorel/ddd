@@ -138,6 +138,8 @@ int test_pooling(int argc, char**argv) {
 		instance.pFormulation(problem);
 	else
 		instance.pqFormulation(problem);
+	problem.amplExport("problem");
+	return 0;
 	//std::cout << "pq formulation : " << std::endl << problem << std::endl;
 	//for (size_t n(0); n < problem.nvars(); ++n){
 	//	if (!sparsityPattern[n].empty()){

@@ -312,7 +312,6 @@ void build(SparseMatrix & input, IntPairSet & chordalExtension, IntSetPtrSet & o
 	else {
 		for (int i(0); i < oldOrder.size(); ++i)
 			oldOrder[i] = i;
-	
 }
 #if		__MY_DEBUG__
 	std::cout << "input is " << std::endl << input << std::endl;

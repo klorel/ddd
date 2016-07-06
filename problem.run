@@ -1,0 +1,5 @@
+reset;
+model problem.mod;
+data problem.dat;
+option solver couenne;
+solve;

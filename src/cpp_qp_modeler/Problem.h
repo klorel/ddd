@@ -65,6 +65,8 @@ public:
 	int nctrs()const;
 
 	void removeInequality();
+
+	void amplExport(std::string const &)const;
 public:
 	void addSparsityPattern(SparsityPattern & sparsityPattern)const;
 	void addSupport(SparsityPattern & sparsityPattern)const;

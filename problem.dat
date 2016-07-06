@@ -1,0 +1,6 @@
+param N := 115;
+param M := 166;
+param: IJ:Q := include problem_q.txt;
+param: I:L := include problem_l.txt;
+param LB := include problem_lb.txt;
+param UB := include problem_ub.txt;
