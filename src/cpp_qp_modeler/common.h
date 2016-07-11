@@ -43,6 +43,7 @@ typedef std::shared_ptr<std::string> StrPtr;
 typedef std::vector<StrPtr> StrPtrVector;
 typedef std::map<std::string, int> Str2Int;
 
+typedef std::shared_ptr<int>  IntPtr;
 typedef std::shared_ptr<Number>  NumberPtr;
 typedef std::shared_ptr<LinearTerm> LinearTermPtr;
 typedef std::shared_ptr<QuadraticTerm> QuadraticTermPtr;

@@ -8,6 +8,7 @@
 
 #include "MomentGenerator.h"
 #include "SdpProblem.h"
+#include "RealPolynomial.h"
 
 int test_pooling(int, char**);
 int test_sos(int, char**);
@@ -115,6 +116,25 @@ int test_sos(int argc, char** argv) {
 	return 0;
 }
 int test_pooling(int argc, char**argv) {
+	Problem pop;
+	pop.newvarpool("x", 1);
+	pop.newvarpool("y", 1);
+
+	RealPolynomial x;
+	x.set(0);
+	RealPolynomial y;
+	y.set(1);
+
+	RealPolynomial m;
+
+	m = x;
+	m = m + y;
+	m = m + x*y;
+	m = m + y*y;
+	m = m + y*x;
+	m.print(std::cout, pop);
+
+	return 0;
 	AvailableInstances id(AvailableInstances::SIZE);
 	std::cout << "argc = " << argc << std::endl;
 	if (argc >= 2) {
