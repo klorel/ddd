@@ -91,7 +91,7 @@ int main(int argc, char** argv) {
 	std::vector<ComplexPolynomial> z = ComplexPolynomial::BuildVector(10);
 	std::vector<ComplexPolynomial> zH = ComplexPolynomial::BuildVectorH(10);
 
-	std::cout << "z1+zH2  = " << z[0] + zH[2] + z[9] + zH[3] + zH[7] + 1<< std::endl;
+	std::cout << "z1+zH2  = " << z[0] + zH[0].conjugate() << std::endl;
 	return 0;
 
 	Problem pop;

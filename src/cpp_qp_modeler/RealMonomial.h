@@ -79,6 +79,7 @@ public:
 	}
 	ComplexMonomialPtr conjugate()const {
 		ComplexMonomialPtr result(new ComplexMonomial);
+		result->_non_zero = _non_zero;
 		std::swap(std::get<Z>(result->_non_zero), std::get<ZH>(result->_non_zero));
 		return result;
 	}
