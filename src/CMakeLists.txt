@@ -13,6 +13,7 @@ IF( WIN32 )
 	SET( CMAKE_CONFIGURATION_TYPES "Debug;Release;" CACHE STRING "limited configs" FORCE)
 	SET( CMAKE_CXX_FLAGS_DEBUG          "/D_DEBUG /MTd /Zi /Ob0 /Od /RTC1" )
 	SET( CMAKE_CXX_FLAGS_RELEASE        "/MT /O2 /Ob2 /D NDEBUG")
+
 ELSE()
 	SET ( CMAKE_BUILD_TYPE "RELEASE"     )
 #	SET ( CMAKE_BUILD_TYPE "DEBUG"     )
@@ -28,8 +29,8 @@ ELSE()
 ENDIF( WIN32 )
 
 
-SET(EIGEN_DIR C:/Users/Manuel/eigen/Eigen)
-# SET(EIGEN_DIR D:/Eigen)
+#SET(EIGEN_DIR C:/Users/Manuel/eigen/Eigen)
+SET(EIGEN_DIR D:/Eigen)
 MESSAGE("EIGEN_DIR is ${EIGEN_DIR}")
 INCLUDE_DIRECTORIES( cpp_qp_modeler cpp_opf_modeler exe ${EIGEN_DIR})
 

@@ -52,8 +52,10 @@ Index2 get_index(int i, int j);
 
 bool isZero(Number value);
 bool isZero(NumberPtr const & value);
+bool isZero(ComplexNumber value);
 
 std::string format(Number value);
+std::string format(ComplexNumber const & value);
 
 class Problem;
 class FunctionReal;
@@ -69,7 +71,10 @@ std::ostream & operator<<(std::ostream &, FunctionComplex const &);
 std::ostream & operator<<(std::ostream &, Problem const &);
 std::ostream & operator<<(std::ostream &, Constraint const &);
 
-
+typedef unsigned int PosInt;
+typedef std::map<PosInt, PosInt> PosInt2PosInt;
+typedef std::shared_ptr<PosInt2PosInt> PosInt2PosIntPtr;
+typedef std::shared_ptr<PosInt> PosIntPtr;
 
 typedef std::vector<int, int> Pattern;
 typedef std::map<int, int> Int2Int;

@@ -9,6 +9,7 @@
 #include "MomentGenerator.h"
 #include "SdpProblem.h"
 #include "RealPolynomial.h"
+#include "RealMonomial.h"
 
 int test_pooling(int, char**);
 int test_sos(int, char**);
@@ -116,6 +117,10 @@ int test_sos(int argc, char** argv) {
 	return 0;
 }
 int test_pooling(int argc, char**argv) {
+	ComplexPolynomial z = ComplexPolynomial::Build(1);
+	std::cout << "z = " << z << std::endl;
+	return 0;
+
 	Problem pop;
 	pop.newvarpool("x", 1);
 	pop.newvarpool("y", 1);
@@ -169,9 +174,9 @@ int test_pooling(int argc, char**argv) {
 	//		std::cout << std::endl;
 	//	}
 	//}
-	std::cout << "problem is "<<std::endl<<problem << std::endl;
+	std::cout << "problem is " << std::endl << problem << std::endl;
 	problem.removeInequality();
-	std::cout << "removed inequality" << std::endl<< problem << std::endl;
+	std::cout << "removed inequality" << std::endl << problem << std::endl;
 
 	SdpProblem sdp;
 	sdp.sdprelaxation(problem);

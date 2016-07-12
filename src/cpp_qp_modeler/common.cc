@@ -8,11 +8,15 @@
 Index2 get_index(int i, int j){
 	return std::make_pair(std::min(i, j), std::max(i, j));
 }
-bool isZero(Number value){
+bool isZero(Number value) {
 	return std::fabs(value)< 1e-10;
 }
-bool isZero(NumberPtr const & value){
+bool isZero(NumberPtr const & value) {
 	return isZero(*value);
+}
+
+bool isZero(ComplexNumber value) {
+	return std::abs(value)< 1e-10;
 }
 
 std::string format(Number value){
@@ -29,6 +33,20 @@ std::string format(Number value){
 		buffer << value;
 	}
 	return buffer.str();
+}
+std::string format(ComplexNumber const & value) {
+	std::stringstream buffer;
+	if (!isZero(value)) {
+		if (!isZero(value.real()))
+			buffer << format(value.real());
+		if (!isZero(value.imag()))
+			buffer << format(value.imag())<<"i";
+	}
+	else {
+		buffer << "0";
+	}
+	return buffer.str();
+	//return "("+format(value.real()) + format(value.imag())+")";
 }
 
 std::ostream & operator<<(std::ostream & stream, FunctionReal const & rhs) {
