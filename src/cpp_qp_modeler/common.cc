@@ -36,11 +36,12 @@ std::string format(Number value){
 }
 std::string format(ComplexNumber const & value) {
 	std::stringstream buffer;
+	buffer << "+";
 	if (!isZero(value)) {
 		if (!isZero(value.real()))
-			buffer << format(value.real());
+			buffer << value.real();
 		if (!isZero(value.imag()))
-			buffer << format(value.imag())<<"i";
+			buffer << value.imag()<<"i";
 	}
 	else {
 		buffer << "0";

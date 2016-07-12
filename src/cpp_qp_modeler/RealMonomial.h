@@ -1,4 +1,4 @@
-
+#pragma once
 #include "common.h"
 
 class RealMonomial;
@@ -9,6 +9,8 @@ std::ostream & operator<<(std::ostream & stream, ComplexMonomial const & rhs);
 
 class RealMonomial {
 public:
+
+public:
 	PosInt2PosInt & alpha() { return _alpha; }
 	PosInt2PosInt const & alpha()const { return _alpha; }
 	bool operator<(RealMonomial const & rhs)const {
@@ -18,28 +20,49 @@ public:
 			return _degree < rhs._degree;
 	}
 
+	bool operator>(RealMonomial const & rhs)const {
+		if (_degree == rhs._degree)
+			return _alpha > rhs._alpha;
+		else
+			return _degree > rhs._degree;
+	}
+	bool operator==(RealMonomial const & rhs)const {
+		if (_degree == rhs._degree)
+			return _alpha == rhs._alpha;
+		else
+			return false;
+	}
 	RealMonomial() :_alpha(), _degree(0) {
 
 	}
 	PosInt degree()const { return _degree; }
+	PosInt &degree() { return _degree; }
+
 private:
 	PosInt2PosInt _alpha;
 	PosInt _degree;
-
+private:
 };
 
 class ComplexMonomial {
+	enum Z_ORDER {
+		Z,
+		ZH,
+	};
 public:
-	RealMonomial & zH() { return *std::get<0>(_non_zero); }
-	RealMonomial const & zH()const { return *std::get<0>(_non_zero); }
+	RealMonomial & zH() { return *std::get<Z>(_non_zero); }
+	RealMonomial const & zH()const { return *std::get<Z>(_non_zero); }
 
-	RealMonomial & z() { return *std::get<1>(_non_zero); }
-	RealMonomial const & z()const { return *std::get<1>(_non_zero); }
+	RealMonomial & z() { return *std::get<ZH>(_non_zero); }
+	RealMonomial const & z()const { return *std::get<ZH>(_non_zero); }
 
 	bool zero() { return zH().degree() == 0 && z().degree() == 0; }
 
 	bool operator<(ComplexMonomial const & rhs)const {
-		return _non_zero < rhs._non_zero;
+		if (zH() == rhs.zH())
+			return z() < rhs.z();
+		else
+			return zH() < rhs.zH();
 	}
 	std::ostream & print(std::ostream & stream)const {
 		for (auto const & alpha : zH().alpha()) {
@@ -56,15 +79,15 @@ public:
 	}
 	ComplexMonomialPtr conjugate()const {
 		ComplexMonomialPtr result(new ComplexMonomial);
-		std::swap(std::get<0>(result->_non_zero), std::get<1>(result->_non_zero));
+		std::swap(std::get<Z>(result->_non_zero), std::get<ZH>(result->_non_zero));
 		return result;
 	}
 private:
 	std::tuple<RealMonomialPtr, RealMonomialPtr> _non_zero;
 public:
 	ComplexMonomial() {
-		std::get<0>(_non_zero) = RealMonomialPtr(new RealMonomial);
-		std::get<1>(_non_zero) = RealMonomialPtr(new RealMonomial);
+		std::get<ZH>(_non_zero) = RealMonomialPtr(new RealMonomial);
+		std::get<Z>(_non_zero) = RealMonomialPtr(new RealMonomial);
 	}
 public:
 	static ComplexMonomialPtr ZeroPtr;
@@ -80,15 +103,15 @@ inline std::ostream & operator<<(std::ostream & stream, ComplexMonomialPtr const
 }
 class ComplexMonomialPredicate {
 public:
-	bool operator()(ComplexMonomial const & lhs, ComplexMonomial const & rhs) {
-		lhs < rhs;
+	bool operator()(ComplexMonomial const & lhs, ComplexMonomial const & rhs)const {
+		return (lhs < rhs);
 	}
-	bool operator()(ComplexMonomialPtr const & lhs, ComplexMonomialPtr const & rhs) {
+	bool operator()(ComplexMonomialPtr const & lhs, ComplexMonomialPtr const & rhs) const {
 		return operator()(*lhs, *rhs);
 	}
 };
 typedef std::shared_ptr<ComplexMonomial> ComplexMonomialPtr;
-typedef std::map<ComplexMonomialPtr, ComplexNumber> ComplexTerms;
+typedef std::map<ComplexMonomialPtr, ComplexNumber, ComplexMonomialPredicate> ComplexTerms;
 typedef std::shared_ptr<ComplexTerms> ComplexTermsPtr;
 
 class ComplexPolynomial {
@@ -148,6 +171,18 @@ public:
 	static ComplexPolynomial BuildH(PosInt id, ComplexNumber const & value) {
 		ComplexPolynomial result;
 		result.terms()[ComplexMonomial::BuildH(id)] = value;
+		return result;
+	}
+	static std::vector<ComplexPolynomial> BuildVector(PosInt size) {
+		std::vector<ComplexPolynomial> result(size);
+		for (PosInt i(0); i < size; ++i)
+			result[i] = Build(i);
+		return result;
+	}
+	static std::vector<ComplexPolynomial> BuildVectorH(PosInt size) {
+		std::vector<ComplexPolynomial> result(size);
+		for (PosInt i(0); i < size; ++i)
+			result[i] = BuildH(i);
 		return result;
 	}
 private:

@@ -88,9 +88,31 @@ void get_sdp_3(SdpProblem & sdp) {
 
 }
 int main(int argc, char** argv) {
-	//SdpProblem sdp;
-	//get_sdp_2(sdp);
-	//sdp.print("toto.dat");
+	std::vector<ComplexPolynomial> z = ComplexPolynomial::BuildVector(10);
+	std::vector<ComplexPolynomial> zH = ComplexPolynomial::BuildVectorH(10);
+
+	std::cout << "z1+zH2  = " << z[0] + zH[2] + z[9] + zH[3] + zH[7] + 1<< std::endl;
+	return 0;
+
+	Problem pop;
+	pop.newvarpool("x", 1);
+	pop.newvarpool("y", 1);
+
+	RealPolynomial x;
+	x.set(0);
+	RealPolynomial y;
+	y.set(1);
+
+	RealPolynomial m;
+
+	m = x;
+	m = m + y;
+	m = m + x*y;
+	m = m + y*y;
+	m = m + y*x;
+	m.print(std::cout, pop);
+
+	return 0;
 
 	test_pooling(argc, argv);
 	return 0;
@@ -117,29 +139,6 @@ int test_sos(int argc, char** argv) {
 	return 0;
 }
 int test_pooling(int argc, char**argv) {
-	ComplexPolynomial z = ComplexPolynomial::Build(1);
-	std::cout << "z = " << z << std::endl;
-	return 0;
-
-	Problem pop;
-	pop.newvarpool("x", 1);
-	pop.newvarpool("y", 1);
-
-	RealPolynomial x;
-	x.set(0);
-	RealPolynomial y;
-	y.set(1);
-
-	RealPolynomial m;
-
-	m = x;
-	m = m + y;
-	m = m + x*y;
-	m = m + y*y;
-	m = m + y*x;
-	m.print(std::cout, pop);
-
-	return 0;
 	AvailableInstances id(AvailableInstances::SIZE);
 	std::cout << "argc = " << argc << std::endl;
 	if (argc >= 2) {
