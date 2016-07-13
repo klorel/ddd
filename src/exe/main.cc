@@ -88,10 +88,15 @@ void get_sdp_3(SdpProblem & sdp) {
 
 }
 int main(int argc, char** argv) {
+
+
+	//std::cout << "Q is " << std::endl << QR.matrixQ() << std::endl;
+	//std::cout << "R is " << std::endl << QR.matrixR() << std::endl;
+	//return 0;
 	std::vector<ComplexPolynomial> z = ComplexPolynomial::BuildVector(10);
 	std::vector<ComplexPolynomial> zH = ComplexPolynomial::BuildVectorH(10);
 
-	std::cout << "z1+zH2  = " << z[0] + zH[0].conjugate() << std::endl;
+	std::cout <<  z[3] + zH[2]+z[1] + ComplexPolynomial::i() << std::endl;
 	return 0;
 
 	Problem pop;
@@ -214,3 +219,15 @@ int test_pooling(int argc, char**argv) {
 //	}
 //}
 //std::cout << "max_support   is " << max_support << std::endl;
+
+//typedef Eigen::SparseMatrix<std::complex<double>, 0, int> SparseMatrixC;
+//typedef Eigen::Triplet<std::complex<double>> TripletC;
+//typedef std::vector<TripletC> TripletsC;
+//SparseMatrixC s(3, 3);
+//TripletsC t;
+//t.push_back({ 0,0,std::complex<double>(1,1) });
+//t.push_back({ 1,1,std::complex<double>(1,1) });
+//t.push_back({ 2,2,std::complex<double>(1,1) });
+//s.setFromTriplets(t.begin(), t.end());
+//std::cout << s << std::endl;
+//Eigen::SparseQR<SparseMatrixC, Eigen::AMDOrdering<int>> QR(s);

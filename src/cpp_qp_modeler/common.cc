@@ -36,18 +36,18 @@ std::string format(Number value){
 }
 std::string format(ComplexNumber const & value) {
 	std::stringstream buffer;
-	buffer << "+";
 	if (!isZero(value)) {
-		if (!isZero(value.real()))
-			buffer << value.real();
-		if (!isZero(value.imag()))
-			buffer << value.imag()<<"i";
+		if(!isZero(value.real()) && !isZero(value.imag()))
+			buffer << "("<<format(value.real())<< format(value.real())<<"i)";
+		else if (!isZero(value.real()))
+			buffer << format(value.real());
+		else if (!isZero(value.imag()))
+			buffer << format(value.imag())<<"i";
 	}
 	else {
 		buffer << "0";
 	}
 	return buffer.str();
-	//return "("+format(value.real()) + format(value.imag())+")";
 }
 
 std::ostream & operator<<(std::ostream & stream, FunctionReal const & rhs) {
