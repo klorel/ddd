@@ -96,7 +96,7 @@ int main(int argc, char** argv) {
 	std::vector<ComplexPolynomial> z = ComplexPolynomial::BuildVector(10);
 	std::vector<ComplexPolynomial> zH = ComplexPolynomial::BuildVectorH(10);
 
-	std::cout <<  z[3] + zH[2]+z[1] + ComplexPolynomial::i() << std::endl;
+	std::cout <<  z[3] + zH[2]*z[1] + ComplexPolynomial::i() +zH[1].H()<< std::endl;
 	return 0;
 
 	Problem pop;
