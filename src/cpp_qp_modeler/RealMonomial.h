@@ -7,44 +7,86 @@ typedef std::shared_ptr<ComplexMonomial> ComplexMonomialPtr;
 typedef std::shared_ptr<RealMonomial> RealMonomialPtr;
 std::ostream & operator<<(std::ostream & stream, ComplexMonomial const & rhs);
 
+#define __DEGUB_ORDERING__ 0
+RealMonomialPtr operator+(RealMonomial const & lhs, RealMonomial const & rhs);
+
 class RealMonomial {
 public:
-
+	friend RealMonomialPtr operator+(RealMonomial const & lhs, RealMonomial const & rhs);
 public:
 	PosInt2PosInt & alpha() { return _alpha; }
 	PosInt2PosInt const & alpha()const { return _alpha; }
-	bool operator<(RealMonomial const & rhs)const {
-		if (_degree == rhs._degree)
-			return _alpha < rhs._alpha;
-		else
-			return _degree < rhs._degree;
-	}
-
-	bool operator>(RealMonomial const & rhs)const {
-		if (_degree == rhs._degree)
-			return _alpha > rhs._alpha;
-		else
-			return _degree > rhs._degree;
-	}
-	bool operator==(RealMonomial const & rhs)const {
-		if (_degree == rhs._degree)
-			return _alpha == rhs._alpha;
-		else
-			return false;
-	}
+	
 	RealMonomial() :_alpha(), _degree(0) {
 
 	}
 	PosInt degree()const { return _degree; }
 	PosInt &degree() { return _degree; }
 
+	std::ostream & print(std::ostream & stream, bool const & isH)const {
+		for (auto const & alpha : alpha()) {
+			stream << "z" << (isH ? "H" : "") << "[" << alpha.first << "]";
+			if (alpha.second > 1)
+				stream << "^" << alpha.second;
+		}
+		return stream;
+	}
 private:
 	PosInt2PosInt _alpha;
 	PosInt _degree;
 private:
 };
+inline std::ostream & operator<<(std::ostream & stream, RealMonomial const & rhs) {
+	rhs.print(stream, true);
+	return stream;
+}
+inline bool operator<(RealMonomial const &  lhs, RealMonomial const & rhs) {
+	bool result;
+	if (lhs.alpha().empty())
+		result = false;
+	else if (rhs.alpha().empty())
+		result = true;
+	else if (lhs.degree() == rhs.degree())
+		result = lhs.alpha() < rhs.alpha();
+	else
+		result = lhs.degree() < rhs.degree();
+#if __DEGUB_ORDERING__
+	std::cout << "RealMonomial "<<lhs << (result ? "<" : "=>") << rhs << std::endl;
+#endif
+	return result;
+}
+
+inline bool operator>(RealMonomial const &  lhs, RealMonomial const & rhs) {
+	bool result;
+	if (rhs.alpha().empty())
+		result = false;
+	else if (lhs.alpha().empty())
+		result = true;
+	else if (lhs.degree() == rhs.degree())
+		result = lhs.alpha() < rhs.alpha();
+	else
+		result = lhs.degree() < rhs.degree();
+#if __DEGUB_ORDERING__
+	std::cout << "RealMonomial " << lhs << (result ? ">" : "<=") << rhs << std::endl;
+#endif
+	return result;
+}
+
+inline bool operator==(RealMonomial const &  lhs, RealMonomial const & rhs) {
+	bool result;
+	if (lhs.degree() == rhs.degree())
+		result = lhs.alpha() == rhs.alpha();
+	else
+		result = false;
+#if __DEGUB_ORDERING__
+	std::cout << "RealMonomial " << lhs << (result ? "==" : "!=") << rhs << std::endl;
+#endif
+	return result;
+}
 
 class ComplexMonomial {
+public:
+	friend ComplexMonomialPtr operator+(ComplexMonomial const & lhs, ComplexMonomial const & rhs);
 	enum Z_ORDER {
 		Z,
 		ZH,
@@ -56,25 +98,12 @@ public:
 	RealMonomial & z() { return *std::get<ZH>(_non_zero); }
 	RealMonomial const & z()const { return *std::get<ZH>(_non_zero); }
 
-	bool zero() { return zH().degree() == 0 && z().degree() == 0; }
+	bool zero() const { return zH().degree() == 0 && z().degree() == 0; }
 
-	bool operator<(ComplexMonomial const & rhs)const {
-		if (zH() == rhs.zH())
-			return z() < rhs.z();
-		else
-			return zH() < rhs.zH();
-	}
 	std::ostream & print(std::ostream & stream)const {
-		for (auto const & alpha : zH().alpha()) {
-			stream << "zH[" << alpha.first << "]";
-			if (alpha.second > 1)
-				stream << "^" << alpha.second;
-		}
-		for (auto const & alpha : z().alpha()) {
-			stream << "z[" << alpha.first << "]";
-			if (alpha.second > 1)
-				stream << "^" << alpha.second;
-		}
+		zH().print(stream, true);
+		z().print(stream, false);
+
 		return stream;
 	}
 	ComplexMonomialPtr conjugate()const {
@@ -105,7 +134,23 @@ inline std::ostream & operator<<(std::ostream & stream, ComplexMonomialPtr const
 class ComplexMonomialPredicate {
 public:
 	bool operator()(ComplexMonomial const & lhs, ComplexMonomial const & rhs)const {
-		return (lhs < rhs);
+		bool result;
+		if (lhs.zero())
+			result = true;
+		else if (rhs.zero())
+			result = false;
+		else if (lhs.zH() == rhs.zH()) {
+			result = lhs.z()< rhs.z();			
+		}
+		else {
+			result = lhs.zH() < rhs.zH();
+		}
+#if __DEGUB_ORDERING__
+		std::cout << "ComplexMonomial " << lhs ;
+		std::cout << (result ? " < " : " => ");
+		std::cout << rhs << std::endl;
+#endif
+		return result;		
 	}
 	bool operator()(ComplexMonomialPtr const & lhs, ComplexMonomialPtr const & rhs) const {
 		return operator()(*lhs, *rhs);
@@ -125,6 +170,9 @@ public:
 	friend ComplexPolynomial operator*(ComplexPolynomial const & lhs, ComplexPolynomial const & rhs);
 	friend ComplexPolynomial operator/(ComplexPolynomial const & lhs, ComplexPolynomial const & rhs);
 public:
+	ComplexPolynomial H()const {
+		return conjugate();
+	}
 	ComplexPolynomial conjugate()const {
 		ComplexPolynomial result;		
 		for (ComplexTerms::const_reverse_iterator rit(_terms->rbegin()); rit != _terms->rend(); ++rit) {
@@ -137,12 +185,19 @@ public:
 
 	}
 	ComplexPolynomial(Number value) :_terms(new ComplexTerms) {
-		terms()[ComplexMonomial::ZeroPtr] =  value;
+		terms()[ComplexMonomial::ZeroPtr] = value;
+	}
+	ComplexPolynomial(Number real, Number imag) :_terms(new ComplexTerms) {
+		terms()[ComplexMonomial::ZeroPtr] = ComplexNumber(real, imag);
 	}
 	ComplexPolynomial(ComplexNumber const & value) :_terms(new ComplexTerms) {
 		terms()[ComplexMonomial::ZeroPtr] = value;
 	}
+	static ComplexPolynomial i() {
+		ComplexPolynomial result(0,1);
+		return result;
 
+	}
 	static ComplexPolynomial Build(PosInt id) {
 		ComplexPolynomial result;
 		result.terms()[ComplexMonomial::Build(id)] = 1;
@@ -219,6 +274,8 @@ inline std::ostream & operator<<(std::ostream & stream, ComplexPolynomial const 
 	rhs.print(stream);
 	return stream;
 }
+ComplexMonomialPtr operator+(ComplexMonomial const & lhs, ComplexMonomial const & rhs);
+RealMonomialPtr operator+(RealMonomial const & lhs, RealMonomial const & rhs);
 
 ComplexPolynomial operator+(ComplexPolynomial const & rhs);
 ComplexPolynomial operator-(ComplexPolynomial const & rhs);
@@ -227,6 +284,26 @@ ComplexPolynomial operator+(ComplexPolynomial const & lhs, ComplexPolynomial con
 ComplexPolynomial operator-(ComplexPolynomial const & lhs, ComplexPolynomial const & rhs);
 ComplexPolynomial operator*(ComplexPolynomial const & lhs, ComplexPolynomial const & rhs);
 ComplexPolynomial operator/(ComplexPolynomial const & lhs, ComplexPolynomial const & rhs);
+
+inline ComplexMonomialPtr operator+(ComplexMonomial const & lhs, ComplexMonomial const & rhs) {
+	// (alpha, alphaH) + (beta, betaH) = (alpha+beta, alphaH+betaH)
+	ComplexMonomialPtr ptr(new ComplexMonomial);
+	ComplexMonomial & result(*ptr);
+	std::get<ComplexMonomial::Z>(result._non_zero) = lhs.z() + rhs.z();
+	std::get<ComplexMonomial::ZH>(result._non_zero) = lhs.zH() + rhs.zH();
+	return ptr;
+}
+inline RealMonomialPtr operator+(RealMonomial const & lhs, RealMonomial const & rhs) {
+	// (alpha) + (beta) = (alpha+beta)
+	RealMonomialPtr ptr(new RealMonomial);
+	RealMonomial & result(*ptr);
+	for (auto const & term : lhs.alpha())
+		result.alpha()[term.first] += term.second;
+	for (auto const & term : rhs.alpha())
+		result.alpha()[term.first] += term.second;
+	result.degree() = lhs.degree() + rhs.degree();
+	return ptr;
+}
 
 inline ComplexPolynomial operator+(ComplexPolynomial const & rhs) {
 	ComplexPolynomial result;
@@ -253,6 +330,15 @@ inline ComplexPolynomial operator-(ComplexPolynomial const & lhs, ComplexPolynom
 }
 inline ComplexPolynomial operator*(ComplexPolynomial const & lhs, ComplexPolynomial const & rhs) {
 	ComplexPolynomial result;
+	for (auto const & lhs_term : lhs.terms()) {
+		for (auto const & rhs_term : rhs.terms()) {
+			ComplexMonomial const & lhs_monomial(*lhs_term.first);
+			ComplexMonomial const & rhs_monomial(*rhs_term.first);
+			// z alpha zH alphaH z beta zH betaH = z alpha+beta zH alphaH+betaH
+			// can be largely optimize for dense 
+			result.terms()[lhs_monomial + rhs_monomial ] = lhs_term.second*rhs_term.second;
+		}
+	}
 	
 	return result;
 }
