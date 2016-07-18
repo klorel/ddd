@@ -1,12 +1,6 @@
-FILE(
-	GLOB
-	EXE_FILES
-	./*.cc
-	./*.h  
-	./*.hxx
-	)
+ADD_EXECUTABLE(pop main.cc)
+TARGET_LINK_LIBRARIES(pop pop_modeler)
 
-
-ADD_EXECUTABLE(qp ${EXE_FILES})
-TARGET_LINK_LIBRARIES(qp qp_modeler opf_modeler)
+ADD_EXECUTABLE(pooling pooling.cc)
+TARGET_LINK_LIBRARIES(pooling pop_modeler pooling_modeler)
  

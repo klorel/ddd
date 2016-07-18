@@ -18,21 +18,28 @@ ELSE()
 #	SET ( CMAKE_BUILD_TYPE "DEBUG"     )
 #	IF( WITH_DEBUG )
 #		SET ( CMAKE_BUILD_TYPE "DEBUG"     )
-#	ELSE( WITH_DEBUG )
+#	ELSE( WITH_DEBUG )GENDIOR
 #		SET ( CMAKE_BUILD_TYPE "RELEASE"     )
 #	ENDIF( WITH_DEBUG )
 	SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -DNDEBUG")
-	SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x -pedantic -fmessage-length=0  -fPIC" )
+	SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x -pedantic -fmessage-length=0 -fPIC" )
 	SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Wno-conversion -Wno-sign-compare")
 	SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-strict-aliasing -Wno-unused-parameter")
 ENDIF( WIN32 )
 
-
-#SET(EIGEN_DIR C:/Users/Manuel/eigen/Eigen)
-SET(EIGEN_DIR D:/Eigen)
+SET(EIGEN_DIR $ENV{EIGENDIR})
 MESSAGE("EIGEN_DIR is ${EIGEN_DIR}")
-INCLUDE_DIRECTORIES( cpp_qp_modeler cpp_opf_modeler exe ${EIGEN_DIR})
+INCLUDE_DIRECTORIES(
+	# cpp_qp_modeler
+	cpp_pop_modeler
+	cpp_pooling_modeler 
+	# cpp_opf_modeler 
+	exe 
+	${EIGEN_DIR})
 
-ADD_SUBDIRECTORY(cpp_qp_modeler)
-ADD_SUBDIRECTORY(cpp_opf_modeler)
+ADD_SUBDIRECTORY(cpp_pop_modeler)
+# ADD_SUBDIRECTORY(cpp_qp_modeler)
+# ADD_SUBDIRECTORY(cpp_opf_modeler)
+ADD_SUBDIRECTORY(cpp_pooling_modeler)
 ADD_SUBDIRECTORY(exe)
+
