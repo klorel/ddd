@@ -107,18 +107,20 @@ enum Sense {
 Number posInfinity();
 Number negInfinity();
 
-
-#include <SparseCholesky>
-
-typedef Eigen::SparseMatrix<double, 0, int> SparseMatrix;
-typedef Eigen::Triplet<double> Triplet;
-typedef std::vector<Triplet> Triplets;
+//
+//#include <SparseCholesky>
+//
+//typedef Eigen::SparseMatrix<double, 0, int> SparseMatrix;
+//typedef Eigen::Triplet<double> Triplet;
+//typedef std::vector<Triplet> Triplets;
 
 // forward declarations
 class RealMonomial;
 class ComplexMonomial;
 class ComplexPolynomial;
 class ComplexMonomialPredicate;
+
+class IndexedPool;
 
 // typedef
 typedef std::shared_ptr<ComplexMonomial> ComplexMonomialPtr;
@@ -128,6 +130,9 @@ typedef std::shared_ptr<RealMonomial> RealMonomialPtr;
 typedef std::shared_ptr<ComplexMonomial> ComplexMonomialPtr;
 typedef std::map<ComplexMonomialPtr, ComplexNumber, ComplexMonomialPredicate> ComplexTerms;
 typedef std::shared_ptr<ComplexTerms> ComplexTermsPtr;
+
+typedef std::shared_ptr<IndexedPool> IndexedPoolPtr;
+typedef std::map<std::string, IndexedPoolPtr> Str2Pool;
 
 // operator overloading
 std::ostream & printAlpha(std::ostream & stream, IntVector const & rhs);
@@ -184,7 +189,22 @@ template<class T1, class T2, class T3> std::string Str(T1 const & t1, T2 const &
 }
 template<class T1, class T2, class T3, class T4> std::string Str(T1 const & t1, T2 const & t2, T3 const & t3, T4 const & t4) {
 	std::stringstream buffer;
-	buffer << t1 << t2 << t3<<t4;
+	buffer << t1 << t2 << t3 << t4;
+	return buffer.str();
+}
+template<class T1, class T2, class T3, class T4, class T5> std::string Str(T1 const & t1, T2 const & t2, T3 const & t3, T4 const & t4, T5 const & t5) {
+	std::stringstream buffer;
+	buffer << t1 << t2 << t3 << t4 << t5;
+	return buffer.str();
+}
+template<class T1, class T2, class T3, class T4, class T5, class T6> std::string Str(T1 const & t1, T2 const & t2, T3 const & t3, T4 const & t4, T5 const & t5, T6 const & t6) {
+	std::stringstream buffer;
+	buffer << t1 << t2 << t3 << t4 << t5 << t6;
+	return buffer.str();
+}
+template<class T1, class T2, class T3, class T4, class T5, class T6, class T7> std::string Str(T1 const & t1, T2 const & t2, T3 const & t3, T4 const & t4, T5 const & t5, T6 const & t6, T7 const & t7) {
+	std::stringstream buffer;
+	buffer << t1 << t2 << t3 << t4 << t5 << t6 << t7;
 	return buffer.str();
 }
 

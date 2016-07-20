@@ -3,10 +3,6 @@
 #include "common.h"
 #include "ComplexPolynomial.h"
 
-class IndexedPool;
-
-typedef std::shared_ptr<IndexedPool> IndexedPoolPtr;
-typedef std::map<std::string, IndexedPoolPtr> Str2Pool;
 
 class IndexedPool {
 public:

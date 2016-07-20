@@ -2,7 +2,7 @@
 
 #include "common.h"
 #include "Constraint.h"
-#include "VariablePool.h"
+#include "IndexedPool.h"
 
 class Problem
 {

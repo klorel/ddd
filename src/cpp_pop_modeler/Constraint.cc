@@ -68,29 +68,26 @@ Constraint operator>=(ComplexPolynomial const & lhs, ComplexNumber const & rhs) 
 	result.f() = lhs;
 	result.lb() = rhs;
 	return result;
-
 }
-
 
 Constraint operator<=(ComplexNumber const & lhs, ComplexPolynomial const & rhs) {
 	Constraint result;
 	result.f() = rhs;
 	result.lb() = lhs;
 	return result;
-
 }
+
 Constraint operator==(ComplexNumber const & lhs, ComplexPolynomial const & rhs) {
 	Constraint result;
 	result.f() = rhs;
 	result.ub() = lhs;
 	result.lb() = lhs;
 	return result;
-
 }
+
 Constraint operator>=(ComplexNumber const & lhs, ComplexPolynomial const & rhs) {
 	Constraint result;
 	result.f() = rhs;
 	result.ub() = lhs;
 	return result;
-
 }
