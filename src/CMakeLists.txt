@@ -48,15 +48,15 @@ INCLUDE_DIRECTORIES(
 	)
 
 ADD_SUBDIRECTORY(cpp_pop_modeler)
-#ADD_SUBDIRECTORY(cpp_pooling_modeler)
+ADD_SUBDIRECTORY(cpp_pooling_modeler)
 
 ADD_SUBDIRECTORY(cpp_sdp_modeler)
 
 #ADD_EXECUTABLE(pop exe/main.cc)
 #TARGET_LINK_LIBRARIES(pop pop_modeler)
 
-#ADD_EXECUTABLE(pooling exe/pooling.cc)
-#TARGET_LINK_LIBRARIES(pooling pop_modeler pooling_modeler)
+ADD_EXECUTABLE(pooling exe/pooling.cc)
+TARGET_LINK_LIBRARIES(pooling pop_modeler pooling_modeler)
 
 ADD_EXECUTABLE(sdp exe/sdp.cc)
 TARGET_LINK_LIBRARIES(sdp pop_modeler sdp_modeler ${MOSEK_DIR}/../bin/mosek64_7_1.lib ${XPRESS_DIR}/lib/xprs.lib)

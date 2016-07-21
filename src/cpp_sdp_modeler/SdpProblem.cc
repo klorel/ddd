@@ -253,7 +253,8 @@ int numBefore(int n, int line) {
 }
 int SdpProblem::nz()const {
 	int const last_id(std::abs(_blocks.back()._size));
-	return id((int)_blocks.size() - 1, last_id-1, last_id-1);
+	int const i(id((int)_blocks.size() - 1, last_id - 1, last_id - 1));
+	return 1+i ;
 }
 
 
@@ -330,4 +331,30 @@ void get_sdp_1(SdpProblem & sdp) {
 
 	sdp.add(y2, b3, 2, 2, 1);
 
+}
+
+void SdpProblem::dual(Matrix & result)const {
+	result.clear();
+	for (auto const & kvp : _matrix) {
+		int const ctr(kvp.first[0]);
+		int const block(kvp.first[1]);
+		int const bi(kvp.first[2]);
+		int const bj(kvp.first[3]);
+		result[{block, bi, bj, ctr}] = kvp.second;
+	}
+
+	for (int i(0); i < nblock(); ++i) {
+		SdpProblem::Block const & block(_blocks[i]);
+		if (block._size > 0) {
+			for (int j(0); j < block._size; ++j)
+				for (int k(j); k < block._size; ++k) {
+					result[{i+1, j + 1, k + 1, 0}] +=0;
+				}
+		}
+		else {
+			for (int j(0); j < -block._size; ++j) {
+				result[{i + 1, j + 1, j + 1, 0}] += 0;
+			}
+		}
+	}
 }

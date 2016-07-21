@@ -40,6 +40,7 @@ public:
 	int nz()const;
 	int nblock()const;
 	int nctr()const;
+	void dual(Matrix &)const;
 public:
 	NumberVector _b;
 	Matrix _matrix;

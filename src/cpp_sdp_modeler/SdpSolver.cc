@@ -200,6 +200,9 @@ void SdpSolver::launch_mosek() {
 
 void XPRS_CC optimizermsg(XPRSprob prob, void* data, const char *sMsg, int nLen, int nMsgLvl);
 void errormsg(XPRSprob const & prob, const char *sSubName, int nLineNo, int nErrorCode);
+
+bool is_sdp_set(IntVector const & sdp_set, StrVector const & col_name, NumberVector const & x, IntVector & cut_start, IntVector & cut_index, NumberVector & cut_value);
+
 void SdpSolver::launch_xpress() {
 	int nReturn;
 	char banner[256];
@@ -213,23 +216,26 @@ void SdpSolver::launch_xpress() {
 	// creating empty problem
 	nReturn = XPRSloadlp(prob, "sdp_cutting", 0, 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
 	if (nReturn != 0)errormsg(prob, "XPRSloadlp", __LINE__, nReturn);
-	int ncols(1 + _input.nz());
+	int ncols(_input.nz());
+	int nrows((int)_input._b.size());
 	// adding columns
 
 	std::cout << "ncols is " << ncols << std::endl;
-	NumberVector col_lb(ncols, -1e6);
-	NumberVector col_ub(ncols, +1e6);
-	NumberVector col_obj(ncols, 0);
-
-	int nrows((int)_input._b.size());
+	// X,Z,y
+	NumberVector col_lb(ncols * 2 + nrows, -1e6);
+	NumberVector col_ub(col_lb.size(), +1e6);
+	NumberVector col_obj(col_lb.size(), 0);
 	std::cout << "nrows is " << nrows << std::endl;
-	NumberVector const & row_rhs(_input._b);
-	std::vector<char> row_sense(nrows, 'E');
+	// AX=A, Z=yA-C
+	NumberVector row_rhs(nrows + ncols);
+	std::copy(_input._b.begin(), _input._b.end(), row_rhs.begin());
+	std::vector<char> row_sense(row_rhs.size(), 'E');
 
 	IntVector row_start;
 	IntVector col_index;
 	NumberVector mat_value;
 
+	// PRIMAL PART, AX=A
 	for (auto const & kvp : _input._matrix) {
 		int const ctr(kvp.first[0]);
 		int const i(kvp.first[1]);
@@ -237,9 +243,12 @@ void SdpSolver::launch_xpress() {
 		int const k(kvp.first[3]);
 		//
 		int const id(_input.id(i - 1, j - 1, k - 1));
-		if (j == k) col_lb[id] = 0;
+		if (j == k) {
+			col_lb[id] = 0;
+			col_lb[ncols + id] = 0;
+		}
 		if (ctr == 0) {
-			col_obj[id] = kvp.second;
+			col_obj[id] = kvp.second*0;
 		}
 		else {
 			if (row_start.size() != ctr) {
@@ -250,31 +259,104 @@ void SdpSolver::launch_xpress() {
 			mat_value.push_back(kvp.second);
 		}
 	}
+	SdpProblem::Matrix dual;
+	_input.dual(dual);
+	int last_zid(-1);
+	// DUAL PART, Z - yA = -C
+	for (auto const & kvp : dual) {
+		int const b(kvp.first[0]);
+		int const bi(kvp.first[1]);
+		int const bj(kvp.first[2]);
+		int const ctr(kvp.first[3]);
+		//
+		int const id(_input.id(b - 1, bi - 1, bj - 1));
+		int const zid(ncols + id);
+		// new row
+		if (last_zid != zid) {
+			row_start.push_back((int)mat_value.size());
+			col_index.push_back(zid);
+			mat_value.push_back(1);
+			last_zid = zid;
+		}
+		if (ctr == 0) {
+			row_rhs[row_start.size() - 1] = -kvp.second;
+		}
+		else {
+			//
+			int const yid(2 * ncols + ctr - 1);
+			col_index.push_back(yid);
+			mat_value.push_back(-kvp.second);
+		}
+	}
+	// weak duality
+	row_start.push_back((int)mat_value.size());
+	row_rhs.push_back(0);
+	row_sense.push_back('G');
+	for (int i(0); i < ncols; ++i) {
+		col_index.push_back(i);
+		mat_value.push_back(-1);
+	}
+	for (int i(0); i < nrows; ++i) {
+		col_index.push_back(2 * ncols + i);
+		mat_value.push_back(row_rhs[i]);
+		col_obj[2 * ncols + i] = -row_rhs[i];
+	}
 	//
-	nReturn = XPRSaddcols(prob, ncols, 0, col_obj.data(), NULL, NULL, NULL, col_lb.data(), col_ub.data());
+	nReturn = XPRSaddcols(prob, (int)col_lb.size(), 0, col_obj.data(), NULL, NULL, NULL, col_lb.data(), col_ub.data());
 	if (nReturn != 0)errormsg(prob, "XPRSaddcols", __LINE__, nReturn);
+	//
+	row_start.push_back((int)mat_value.size());
+	nReturn = XPRSaddrows(prob, (int)row_rhs.size(), (int)mat_value.size(), row_sense.data(), row_rhs.data(), NULL, row_start.data(), col_index.data(), mat_value.data());
+	if (nReturn != 0)errormsg(prob, "XPRSaddrows", __LINE__, nReturn);
 
-	StrVector col_name(ncols);
+
+	// sdp sets
+	std::vector<IntVector> sdp_cones;
+	for (int i(0); i < _input.nblock(); ++i) {
+		SdpProblem::Block const & block(_input._blocks[i]);
+		if (block._size > 0) {
+			IntVector primal_set;
+			IntVector dual_set;
+			for (int j(0); j < block._size; ++j)
+				for (int k(j); k < block._size; ++k) {
+					int const id(_input.id(i, j, k));
+					primal_set.push_back(id);
+					dual_set.push_back(id + ncols);
+				}
+			//sdp_cones.push_back(primal_set);
+			sdp_cones.push_back(dual_set);
+		}
+	}
+
+	StrVector col_name(col_lb.size());
 	for (int i(0); i < _input.nblock(); ++i) {
 		SdpProblem::Block const & block(_input._blocks[i]);
 		if (block._size > 0) {
 			for (int j(0); j < block._size; ++j)
-				for (int k(j); k < block._size; ++k)
-					col_name[_input.id(i, j, k)] = Str("X_", i, "_", j, "_", k);
+				for (int k(j); k < block._size; ++k) {
+					int const id(_input.id(i, j, k));
+					//std::cout << "id = " << id << std::endl;
+					col_name[id] = Str("X_", i, "_", j, "_", k);
+					col_name[ncols + id] = Str("Z_", i, "_", j, "_", k);
+				}
 		}
 		else {
-			for (int j(0); j < -block._size; ++j)
-				col_name[_input.id(i, j, j)] = Str("X_", i, "_", j, "_", j);
+			for (int j(0); j < -block._size; ++j) {
+				int const id(_input.id(i, j, j));
+				col_name[id] = Str("X_", i, "_", j, "_", j);
+				col_name[ncols + id] = Str("Z_", i, "_", j, "_", j);
+			}
 		}
 	}
-	for (int i(0); i < ncols; ++i) {
-		nReturn = XPRSaddnames(prob, 2, col_name[i].c_str(), i, i);
-		if (nReturn != 0)errormsg(prob, "XPRSaddnames", __LINE__, nReturn);
+	for (int i(0); i < nrows; ++i) {
+		col_name[2 * ncols + i] = Str("y_", i);
 	}
-	//
-	row_start.push_back((int)mat_value.size());
-	nReturn = XPRSaddrows(prob, nrows, (int)mat_value.size(), row_sense.data(), row_rhs.data(), NULL, row_start.data(), col_index.data(), mat_value.data());
-	if (nReturn != 0)errormsg(prob, "XPRSaddrows", __LINE__, nReturn);
+	for (int i(0); i < col_lb.size(); ++i) {
+		//std::cout << "col_name["<<i<<"] = "<<col_name[i] << std::endl;
+		nReturn = XPRSaddnames(prob, 2, col_name[i].c_str(), i, i);
+		if (nReturn != 0)
+			errormsg(prob, "XPRSaddnames", __LINE__, nReturn);
+	}
 
 
 	nReturn = XPRSsetintcontrol(prob, XPRS_DEFAULTALG, XPRS_ALG_DUAL);
@@ -291,83 +373,111 @@ void SdpSolver::launch_xpress() {
 
 	nReturn = XPRSsetdblcontrol(prob, XPRS_FEASTOL, 1e-8);
 	if (nReturn != 0)errormsg(prob, "XPRSsetdblcontrol", __LINE__, nReturn);
+	nReturn = XPRSsetdblcontrol(prob, XPRS_FEASTOLTARGET, 1e-8);
+	if (nReturn != 0)errormsg(prob, "XPRSsetdblcontrol", __LINE__, nReturn);
+	nReturn = XPRSsetdblcontrol(prob, XPRS_OPTIMALITYTOL, 0);
+	if (nReturn != 0)errormsg(prob, "XPRSsetdblcontrol", __LINE__, nReturn);
+	nReturn = XPRSsetdblcontrol(prob, XPRS_OPTIMALITYTOLTARGET, 0);
+	if (nReturn != 0)errormsg(prob, "XPRSsetdblcontrol", __LINE__, nReturn);
+
+	nReturn = XPRSsetintcontrol(prob, XPRS_SCALING, 0);
+	if (nReturn != 0)errormsg(prob, "XPRSsetintcontrol", __LINE__, nReturn);
+	nReturn = XPRSsetintcontrol(prob, XPRS_PRESOLVE, 0);
+	if (nReturn != 0)errormsg(prob, "XPRSsetintcontrol", __LINE__, nReturn);
+	XPRSwriteprob(prob, "sdp_cutting.lp", "lp");
 
 	size_t ite(0);
 	bool stop(false);
-	NumberVector x(ncols);
+	NumberVector x(col_lb.size());
 	while (!stop) {
 		++ite;
 		XPRSlpoptimize(prob, "");
 		XPRSgetlpsol(prob, x.data(), NULL, NULL, NULL);
 
-		NumberVector cut_rhs;
-		std::vector<char> cut_sense;
 		IntVector cut_start;
 		IntVector cut_index;
 		NumberVector cut_value;
 
-		for (int i(0); i < _input.nblock(); ++i) {
-			SdpProblem::Block const & block(_input._blocks[i]);
-			if (block._size > 0) {
-				std::cout << "block._size is " << block._size << std::endl;
-				int id(block._begin);
-				Triplets triplets;
-				for (int j(0); j < block._size; ++j) {
-					for (int k(j); k < block._size; ++k, ++id) {
-						if (!isZero(x[id])) {
-							std::cout << col_name[id] << " : " << x[id] << std::endl;
-							triplets.push_back({ j,k,x[id] });
-							if (k != j)
-								triplets.push_back({ k,j,x[id] });
-						}
-					}
-				}
-				Eigen::SparseMatrix<double> m(block._size, block._size);
-				m.setFromTriplets(triplets.begin(), triplets.end());
-				Eigen::MatrixXd a(m);
-				Eigen::EigenSolver<Eigen::MatrixXd> eigenof(a, true);
-				Eigen::EigenSolver<Eigen::MatrixXd>::EigenvalueType eigenvalues = eigenof.eigenvalues();
-				Eigen::EigenSolver<Eigen::MatrixXd>::EigenvectorsType eigenvectors = eigenof.eigenvectors();
-				std::cout << "A is " << std::endl << a << std::endl;
-				for (int lambdaIdx(0); lambdaIdx < eigenvectors.cols(); ++lambdaIdx) {
-					double const lambda(eigenvalues(lambdaIdx).real());
-					if (lambda < -1e-10) {
-						std::cout << "lambda[" << std::setw(6) << lambdaIdx << "] = ";
-						std::cout << std::setw(15) << lambda;
-						std::cout << std::endl;
-						for (int vectorIdx(0); vectorIdx < eigenvectors.rows(); ++vectorIdx) {
-							std::cout << "v[" << std::setw(6) << vectorIdx << "] = " << eigenvectors(vectorIdx, lambdaIdx) << std::endl;
-						}
-						std::cout << eigenvectors.col(lambdaIdx) << std::endl;
-						std::cout << eigenvectors << std::endl;
-						cut_rhs.push_back(0);
-						cut_sense.push_back('G');
-						cut_start.push_back((int)cut_value.size());
-						id = block._begin;
-						double verif_value(0);
-						for (int j(0); j < block._size; ++j) {
-							Number const vj(eigenvectors(j, lambdaIdx).real());
-							for (int k(j); k < block._size; ++k, ++id) {
-								Number const factor(j == k ? 1 : 2);
-								Number const vk(eigenvectors(k, lambdaIdx).real());
-								cut_index.push_back(id);
-								cut_value.push_back(factor*vj*vk);
-								verif_value += factor*vj*vk*x[id];
-								std::cout << id << " | " << _input.id(i, j, k) << " : " << x[id] << std::endl;
-							}
-						}
-						std::cout << "verif is " << verif_value << std::endl;
-						std::cout << (eigenvectors.col(lambdaIdx).transpose()*a*eigenvectors.col(lambdaIdx)).real() << std::endl;
-					}
-				}
-			}
+		for (auto const & cone: sdp_cones) {
+			is_sdp_set(cone, col_name, x, cut_start, cut_index, cut_value);
 		}
+		NumberVector cut_rhs(cut_start.size(), 0);
+		std::vector<char> cut_sense(cut_start.size(), 'G');
 		if (!cut_rhs.empty()) {
 			std::cout << "Number of cuts : " << cut_rhs.size() << std::endl;
+			cut_start.push_back((int)cut_value.size());
 			nReturn = XPRSaddrows(prob, (int)cut_rhs.size(), (int)cut_value.size(), cut_sense.data(), cut_rhs.data(), NULL, cut_start.data(), cut_index.data(), cut_value.data());
 		}
+		//for (int i(0); i < _input.nblock(); ++i) {
+		//	SdpProblem::Block const & block(_input._blocks[i]);
+		//	if (block._size > 0) {
+		//		std::cout << "block._size is " << block._size << std::endl;
+		//		int id(block._begin);
+		//		Triplets triplets;
+		//		for (int j(0); j < block._size; ++j) {
+		//			for (int k(j); k < block._size; ++k, ++id) {
+		//				if (!isZero(x[id])) {
+		//					std::cout << col_name[id] << " : " << x[id] << std::endl;
+		//					triplets.push_back({ j,k,x[id] });
+		//					if (k != j)
+		//						triplets.push_back({ k,j,x[id] });
+		//				}
+		//			}
+		//		}
+		//		Eigen::SparseMatrix<double> m(block._size, block._size);
+		//		m.setFromTriplets(triplets.begin(), triplets.end());
+		//		Eigen::MatrixXd a(m);
+		//		Eigen::EigenSolver<Eigen::MatrixXd> eigenof(a, true);
+		//		Eigen::EigenSolver<Eigen::MatrixXd>::EigenvalueType eigenvalues = eigenof.eigenvalues();
+		//		Eigen::EigenSolver<Eigen::MatrixXd>::EigenvectorsType eigenvectors = eigenof.eigenvectors();
+		//		std::cout << "A is " << std::endl << a << std::endl;
+		//		for (int lambdaIdx(0); lambdaIdx < eigenvectors.cols(); ++lambdaIdx) {
+		//			double const lambda(eigenvalues(lambdaIdx).real());
+		//			if (lambda < -1e-10) {
+		//				std::cout << "lambda[" << std::setw(6) << lambdaIdx << "] = ";
+		//				std::cout << std::setw(15) << lambda;
+		//				std::cout << std::endl;
+		//				for (int vectorIdx(0); vectorIdx < eigenvectors.rows(); ++vectorIdx) {
+		//					std::cout << "v[" << std::setw(6) << vectorIdx << "] = " << eigenvectors(vectorIdx, lambdaIdx) << std::endl;
+		//				}
+		//				std::cout << "eigenvectors.col(" << lambdaIdx << ")" << std::endl << eigenvectors.col(lambdaIdx) << std::endl;
+		//				std::cout << "eigenvectors" << std::endl << eigenvectors << std::endl;
+		//				cut_rhs.push_back(0);
+		//				cut_sense.push_back('G');
+		//				cut_start.push_back((int)cut_value.size());
+		//				id = block._begin;
+		//				double verif_value(0);
+		//				double const scale_factor(1 + 0 * 1.0 / std::sqrt(-lambda));
+		//				for (int j(0); j < block._size; ++j) {
+		//					Number const vj(eigenvectors(j, lambdaIdx).real());
+		//					for (int k(j); k < block._size; ++k, ++id) {
+		//						Number const factor(j == k ? 1 : 2);
+		//						Number const vk(eigenvectors(k, lambdaIdx).real());
+		//						cut_index.push_back(id);
+		//						cut_value.push_back(factor*vj*vk*scale_factor);
+		//						verif_value += cut_value.back()*x[id];
+		//						std::cout << col_name[id] << " | " << cut_value.back() << std::endl;
+		//					}
+		//				}
+		//				double  eigen_verif = (eigenvectors.col(lambdaIdx).transpose()*a*eigenvectors.col(lambdaIdx)).real()(0, 0)*scale_factor;
+		//				if (std::abs(eigen_verif - verif_value) > 1e-6) {
+		//					std::cout << "error eigen_verif " << std::setprecision(15) << eigen_verif << std::endl;
+		//					std::cout << "error verif_value " << std::setprecision(15) << verif_value << std::endl;
+		//					std::exit(0);
+		//				}
+
+		//			}
+		//		}
+		//	}
+		//}
+		//if (!cut_rhs.empty()) {
+		//	std::cout << "Number of cuts : " << cut_rhs.size() << std::endl;
+		//	nReturn = XPRSaddrows(prob, (int)cut_rhs.size(), (int)cut_value.size(), cut_sense.data(), cut_rhs.data(), NULL, cut_start.data(), cut_index.data(), cut_value.data());
+		//}
 		//XPRSwriteprob(prob, Str("prob_", ite, ".lp").c_str(), "lp");
 		//if (nReturn != 0)errormsg(prob, "XPRSwriteprob", __LINE__, nReturn);
+		XPRSwriteprob(prob, Str("sdp_cutting.lp").c_str(), "lp");
+		if (nReturn != 0)errormsg(prob, "XPRSwriteprob", __LINE__, nReturn);
 		stop = cut_rhs.empty();
 	}
 	//nReturn = XPRSwriteprob(prob, "sdp_cutting.lp", "lp");
@@ -377,6 +487,73 @@ void SdpSolver::launch_xpress() {
 	XPRSfree();
 }
 
+bool is_sdp_set(IntVector const & sdp_set, StrVector const & col_name, NumberVector const & x, IntVector & cut_start, IntVector & cut_index, NumberVector & cut_value) {
+	int const n((int)std::round(std::sqrt(2 * sdp_set.size() + 0.75) - 0.5));
+	std::cout << "s is " << sdp_set.size() << std::endl;
+	std::cout << "n is " << n << std::endl;
+
+	std::cout << "sdt_set is ";
+	for (int i(0); i < n; ++i) {
+		std::cout << col_name[sdp_set.front()+i] << ", ";
+	}
+	std::cout << std::endl;
+
+	Eigen::MatrixXd a(n, n);
+	a.setZero();
+	int id(sdp_set.front());
+	for (int i(0); i < n; ++i) {
+		for (int j(i); j < n; ++j, ++id) {
+			a(i, j) = x[id];
+			if (i != j)
+				a(j, i) = x[id];
+		}
+	}
+
+	Eigen::EigenSolver<Eigen::MatrixXd> eigenof(a, true);
+	Eigen::EigenSolver<Eigen::MatrixXd>::EigenvalueType eigenvalues = eigenof.eigenvalues();
+	Eigen::EigenSolver<Eigen::MatrixXd>::EigenvectorsType eigenvectors = eigenof.eigenvectors();
+	std::cout << "A is " << std::endl << a << std::endl;
+	for (int lambdaIdx(0); lambdaIdx < eigenvectors.cols(); ++lambdaIdx) {
+		double const lambda(eigenvalues(lambdaIdx).real());
+		if (lambda < -1e-10) {
+			std::cout << "lambda[" << std::setw(6) << lambdaIdx << "] = ";
+			std::cout << std::setw(15) << lambda;
+			std::cout << std::endl;
+			for (int vectorIdx(0); vectorIdx < eigenvectors.rows(); ++vectorIdx) {
+				std::cout << "v[" << std::setw(6) << vectorIdx << "] = " << eigenvectors(vectorIdx, lambdaIdx) << std::endl;
+			}
+			std::cout << "eigenvectors.col(" << lambdaIdx << ")" << std::endl << eigenvectors.col(lambdaIdx) << std::endl;
+			std::cout << "eigenvectors" << std::endl << eigenvectors << std::endl;
+			cut_start.push_back((int)cut_value.size());
+
+			double verif_value(0);
+			double const scale_factor(1 + 0 * 1.0 / std::sqrt(-lambda));
+
+
+			int id = sdp_set.front();
+			for (int i(0); i < n; ++i) {
+				Number const vi(eigenvectors(i, lambdaIdx).real());
+				for (int j(i); j < n; ++j, ++id) {
+					Number const vj(eigenvectors(j, lambdaIdx).real());
+					Number const factor(i == j ? 1 : 2);
+					cut_index.push_back(id);
+					cut_value.push_back(factor*vi*vj*scale_factor);
+					verif_value += cut_value.back()*x[id];
+					std::cout << col_name[id] << " | " << cut_value.back() << std::endl;
+				}
+			}
+
+			double  eigen_verif = (eigenvectors.col(lambdaIdx).transpose()*a*eigenvectors.col(lambdaIdx)).real()(0, 0)*scale_factor;
+			if (std::abs(eigen_verif - verif_value) > 1e-6) {
+				std::cout << "error eigen_verif " << std::setprecision(15) << eigen_verif << std::endl;
+				std::cout << "error verif_value " << std::setprecision(15) << verif_value << std::endl;
+				std::exit(0);
+			}
+
+		}
+	}
+	return false;
+}
 
 /**********************************************************************************\
 * Name:         optimizermsg                                                           *
