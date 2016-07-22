@@ -1,4 +1,5 @@
 #include "SdpProblem.h"
+#include "test_cholesky.h"
 
 void SdpProblem::add(int i1, int i2, int i3, int i4, Number v) {
 	_matrix[{i1, i2, i3, i4}] += v;
@@ -354,6 +355,92 @@ void SdpProblem::dual(Matrix & result)const {
 		else {
 			for (int j(0); j < -block._size; ++j) {
 				result[{i + 1, j + 1, j + 1, 0}] += 0;
+			}
+		}
+	}
+}
+
+void SdpProblem::read(std::string const & file_name) {
+	clear();
+
+	std::ifstream file(file_name.c_str());
+	std::string line;
+	size_t n = 0;
+	size_t n_block(0);
+	size_t n_constraint(0);
+	while (std::getline(file, line)) {
+		++n;
+		std::stringstream buffer(line);
+		if (n == 1) {
+			buffer >> n_constraint;
+		}
+		else if (n == 2) {
+			buffer >> n_block;
+		}
+		else if (n == 3) {
+			for (size_t i(0); i < n_block; ++i) {
+				int s;
+				buffer >> s;
+				newBlock(s);
+			}
+		}
+		else if (n == 4) {
+			for (size_t i(0); i < n_constraint; ++i) {
+				double s;
+				buffer >> s;
+				newy(s);
+			}
+		}
+		else {
+			int ctr;
+			int block;
+			int i;
+			int j;
+			double value;
+			buffer >> ctr;
+			buffer >> block;
+			buffer >> i;
+			buffer >> j;
+			buffer >> value;
+			add(ctr, block, i, j, value);
+		}
+	}
+}
+
+void SdpProblem::matrix_completion(IntSetPtrSet & output)const {
+	output.clear();
+	std::vector<std::set<Triplet, TripletPredicate>> triplets(nblock());
+	std::vector<bool> is_diagonal(nblock(), true);
+	for (auto const & kvp : _matrix) {
+		triplets[kvp.first[1] - 1].insert({ kvp.first[2] - 1, kvp.first[3] - 1 , 1 });		
+		if (kvp.first[2] != kvp.first[3]) {
+			triplets[kvp.first[1] - 1].insert({ kvp.first[3] - 1, kvp.first[2] - 1 , 1 });
+			is_diagonal[kvp.first[1] - 1] = false;
+		}
+	}
+
+	for (size_t b(0); b < nblock(); ++b) {
+		Block const & block(_blocks[b]);
+		int const n(block._size);
+		if (block._size > 0) {
+			if (!is_diagonal[b]) {
+				std::cout << "treating block " << b << " of size " << n << ", number of edges " << triplets[b].size()<<", sparsity is "<< triplets[b].size()/(1.0*n*n)*100<< " %" << std::endl;
+				NumberVector degree(n, 0);
+				for (auto const & t : triplets[b]) {
+					degree[t.col()] += 1;
+					degree[t.row()] += 1;
+				}
+				for (int j(0); j < n; ++j) {
+					triplets[b].insert({ j, j, degree[j] + 1 });
+				}
+				SparseMatrix m(n, n);
+				m.setFromTriplets(triplets[b].begin(), triplets[b].end());
+				IntSetPtrSet cliques;
+				work_on(m, cliques);
+			}
+			else {
+
+				std::cout << "diagonal block " <<b<< std::endl;
 			}
 		}
 	}

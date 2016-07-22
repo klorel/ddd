@@ -41,6 +41,9 @@ public:
 	int nblock()const;
 	int nctr()const;
 	void dual(Matrix &)const;
+
+	void read(std::string const &);
+	void matrix_completion(IntSetPtrSet & output)const;
 public:
 	NumberVector _b;
 	Matrix _matrix;

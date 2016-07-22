@@ -26,7 +26,7 @@ SdpSolver::~SdpSolver() {
 
 static void MSKAPI printstr(void *handle, MSKCONST char str[])
 {
-	std::cout << str << std::endl;
+	std::cout << str;;
 }
 
 
@@ -147,11 +147,11 @@ void SdpSolver::launch_mosek() {
 							MSK_SOL_ITR,    /* Request the interior solution. */
 							i,
 							barx.data());
-						for (int j(0); j < LENBARVAR[i]; ++j) {
-							std::cout << std::setw(5) << i;
-							std::cout << std::setw(5) << j;
-							std::cout << std::setw(15) << barx[j] << std::endl;;
-						}
+						//for (int j(0); j < LENBARVAR[i]; ++j) {
+						//	std::cout << std::setw(5) << i;
+						//	std::cout << std::setw(5) << j;
+						//	std::cout << std::setw(15) << barx[j] << std::endl;;
+						//}
 					}
 
 
@@ -201,7 +201,7 @@ void SdpSolver::launch_mosek() {
 void XPRS_CC optimizermsg(XPRSprob prob, void* data, const char *sMsg, int nLen, int nMsgLvl);
 void errormsg(XPRSprob const & prob, const char *sSubName, int nLineNo, int nErrorCode);
 
-bool is_sdp_set(IntVector const & sdp_set, StrVector const & col_name, NumberVector const & x, IntVector & cut_start, IntVector & cut_index, NumberVector & cut_value);
+bool is_sdp_set(IntVector const & sdp_set, StrVector const & col_name, NumberVector const & x, IntVector & cut_start, IntVector & cut_index, NumberVector & cut_value, size_t max_cut);
 
 void SdpSolver::launch_xpress() {
 	int nReturn;
@@ -299,7 +299,7 @@ void SdpSolver::launch_xpress() {
 	for (int i(0); i < nrows; ++i) {
 		col_index.push_back(2 * ncols + i);
 		mat_value.push_back(row_rhs[i]);
-		col_obj[2 * ncols + i] = -row_rhs[i];
+		col_obj[2 * ncols + i] = row_rhs[i];
 	}
 	//
 	nReturn = XPRSaddcols(prob, (int)col_lb.size(), 0, col_obj.data(), NULL, NULL, NULL, col_lb.data(), col_ub.data());
@@ -368,23 +368,25 @@ void SdpSolver::launch_xpress() {
 	nReturn = XPRSsetcbmessage(prob, optimizermsg, NULL);
 	if (nReturn != 0)errormsg(prob, "XPRSsetcbmessage", __LINE__, nReturn);
 
-	nReturn = XPRSchgobjsense(prob, XPRS_OBJ_MAXIMIZE);
+	nReturn = XPRSchgobjsense(prob, XPRS_OBJ_MINIMIZE);
 	if (nReturn != 0)errormsg(prob, "XPRSchgobjsense", __LINE__, nReturn);
 
-	nReturn = XPRSsetdblcontrol(prob, XPRS_FEASTOL, 1e-8);
-	if (nReturn != 0)errormsg(prob, "XPRSsetdblcontrol", __LINE__, nReturn);
-	nReturn = XPRSsetdblcontrol(prob, XPRS_FEASTOLTARGET, 1e-8);
-	if (nReturn != 0)errormsg(prob, "XPRSsetdblcontrol", __LINE__, nReturn);
-	nReturn = XPRSsetdblcontrol(prob, XPRS_OPTIMALITYTOL, 0);
-	if (nReturn != 0)errormsg(prob, "XPRSsetdblcontrol", __LINE__, nReturn);
-	nReturn = XPRSsetdblcontrol(prob, XPRS_OPTIMALITYTOLTARGET, 0);
-	if (nReturn != 0)errormsg(prob, "XPRSsetdblcontrol", __LINE__, nReturn);
+	//nReturn = XPRSsetdblcontrol(prob, XPRS_FEASTOL, 1e-8);
+	//if (nReturn != 0)errormsg(prob, "XPRSsetdblcontrol", __LINE__, nReturn);
+	//nReturn = XPRSsetdblcontrol(prob, XPRS_FEASTOLTARGET, 1e-8);
+	//if (nReturn != 0)errormsg(prob, "XPRSsetdblcontrol", __LINE__, nReturn);
+	//nReturn = XPRSsetdblcontrol(prob, XPRS_OPTIMALITYTOL, 0);
+	//if (nReturn != 0)errormsg(prob, "XPRSsetdblcontrol", __LINE__, nReturn);
+	//nReturn = XPRSsetdblcontrol(prob, XPRS_OPTIMALITYTOLTARGET, 0);
+	//if (nReturn != 0)errormsg(prob, "XPRSsetdblcontrol", __LINE__, nReturn);
 
 	nReturn = XPRSsetintcontrol(prob, XPRS_SCALING, 0);
 	if (nReturn != 0)errormsg(prob, "XPRSsetintcontrol", __LINE__, nReturn);
-	nReturn = XPRSsetintcontrol(prob, XPRS_PRESOLVE, 0);
-	if (nReturn != 0)errormsg(prob, "XPRSsetintcontrol", __LINE__, nReturn);
-	XPRSwriteprob(prob, "sdp_cutting.lp", "lp");
+	//nReturn = XPRSsetintcontrol(prob, XPRS_PRESOLVE, 0);
+	//if (nReturn != 0)errormsg(prob, "XPRSsetintcontrol", __LINE__, nReturn);
+	//XPRSwriteprob(prob, "sdp_cutting.lp", "lp");
+
+	XPRSsetintcontrol(prob, XPRS_LPLOG, XPRS_OUTPUTLOG_NO_OUTPUT);
 
 	size_t ite(0);
 	bool stop(false);
@@ -397,14 +399,16 @@ void SdpSolver::launch_xpress() {
 		IntVector cut_start;
 		IntVector cut_index;
 		NumberVector cut_value;
-
+		size_t max_cut(50);
 		for (auto const & cone: sdp_cones) {
-			is_sdp_set(cone, col_name, x, cut_start, cut_index, cut_value);
+			is_sdp_set(cone, col_name, x, cut_start, cut_index, cut_value, max_cut);
+			if (max_cut != 0 && cut_start.size() >= max_cut)
+				break;
 		}
 		NumberVector cut_rhs(cut_start.size(), 0);
 		std::vector<char> cut_sense(cut_start.size(), 'G');
 		if (!cut_rhs.empty()) {
-			std::cout << "Number of cuts : " << cut_rhs.size() << std::endl;
+			//std::cout << "Number of cuts : " << cut_rhs.size()<<", elements "<<cut_value.size()<<", density "<< cut_value.size()*1.0/cut_rhs.size() << std::endl;
 			cut_start.push_back((int)cut_value.size());
 			nReturn = XPRSaddrows(prob, (int)cut_rhs.size(), (int)cut_value.size(), cut_sense.data(), cut_rhs.data(), NULL, cut_start.data(), cut_index.data(), cut_value.data());
 		}
@@ -476,9 +480,18 @@ void SdpSolver::launch_xpress() {
 		//}
 		//XPRSwriteprob(prob, Str("prob_", ite, ".lp").c_str(), "lp");
 		//if (nReturn != 0)errormsg(prob, "XPRSwriteprob", __LINE__, nReturn);
-		XPRSwriteprob(prob, Str("sdp_cutting.lp").c_str(), "lp");
-		if (nReturn != 0)errormsg(prob, "XPRSwriteprob", __LINE__, nReturn);
+		//XPRSwriteprob(prob, Str("sdp_cutting.lp").c_str(), "lp");
+		//if (nReturn != 0)errormsg(prob, "XPRSwriteprob", __LINE__, nReturn);
 		stop = cut_rhs.empty();
+		int simplex_ite;
+		double obj_value;
+		XPRSgetintattrib(prob, XPRS_SIMPLEXITER, &simplex_ite);
+		XPRSgetdblattrib(prob, XPRS_LPOBJVAL, &obj_value);
+		std::cout << std::setw(6) << ite;
+		std::cout << std::setw(6) << cut_rhs.size();
+		std::cout << std::setw(8) << simplex_ite;
+		std::cout << std::setw(25)<<std::setprecision(15) << obj_value;
+		std::cout << std::endl;
 	}
 	//nReturn = XPRSwriteprob(prob, "sdp_cutting.lp", "lp");
 	//if (nReturn != 0)errormsg(prob, "XPRSwriteprob", __LINE__, nReturn);
@@ -487,17 +500,18 @@ void SdpSolver::launch_xpress() {
 	XPRSfree();
 }
 
-bool is_sdp_set(IntVector const & sdp_set, StrVector const & col_name, NumberVector const & x, IntVector & cut_start, IntVector & cut_index, NumberVector & cut_value) {
+bool is_sdp_set(IntVector const & sdp_set, StrVector const & col_name, NumberVector const & x, IntVector & cut_start, IntVector & cut_index, NumberVector & cut_value, size_t max_cut) {
+	bool active_log(false);
 	int const n((int)std::round(std::sqrt(2 * sdp_set.size() + 0.75) - 0.5));
-	std::cout << "s is " << sdp_set.size() << std::endl;
-	std::cout << "n is " << n << std::endl;
-
-	std::cout << "sdt_set is ";
-	for (int i(0); i < n; ++i) {
-		std::cout << col_name[sdp_set.front()+i] << ", ";
+	if (active_log) {
+		std::cout << "s is " << sdp_set.size() << std::endl;
+		std::cout << "n is " << n << std::endl;
+		std::cout << "sdt_set is ";
+		for (int i(0); i < n; ++i) {
+			std::cout << col_name[sdp_set.front() + i] << ", ";
+		}
+		std::cout << std::endl;
 	}
-	std::cout << std::endl;
-
 	Eigen::MatrixXd a(n, n);
 	a.setZero();
 	int id(sdp_set.front());
@@ -512,18 +526,22 @@ bool is_sdp_set(IntVector const & sdp_set, StrVector const & col_name, NumberVec
 	Eigen::EigenSolver<Eigen::MatrixXd> eigenof(a, true);
 	Eigen::EigenSolver<Eigen::MatrixXd>::EigenvalueType eigenvalues = eigenof.eigenvalues();
 	Eigen::EigenSolver<Eigen::MatrixXd>::EigenvectorsType eigenvectors = eigenof.eigenvectors();
-	std::cout << "A is " << std::endl << a << std::endl;
+	if (active_log) {
+		std::cout << "A is " << std::endl << a << std::endl;
+	}
 	for (int lambdaIdx(0); lambdaIdx < eigenvectors.cols(); ++lambdaIdx) {
 		double const lambda(eigenvalues(lambdaIdx).real());
 		if (lambda < -1e-10) {
-			std::cout << "lambda[" << std::setw(6) << lambdaIdx << "] = ";
-			std::cout << std::setw(15) << lambda;
-			std::cout << std::endl;
-			for (int vectorIdx(0); vectorIdx < eigenvectors.rows(); ++vectorIdx) {
-				std::cout << "v[" << std::setw(6) << vectorIdx << "] = " << eigenvectors(vectorIdx, lambdaIdx) << std::endl;
+			if (active_log) {
+				std::cout << "lambda[" << std::setw(6) << lambdaIdx << "] = ";
+				std::cout << std::setw(15) << lambda;
+				std::cout << std::endl;
+				for (int vectorIdx(0); vectorIdx < eigenvectors.rows(); ++vectorIdx) {
+					std::cout << "v[" << std::setw(6) << vectorIdx << "] = " << eigenvectors(vectorIdx, lambdaIdx) << std::endl;
+				}
+				std::cout << "eigenvectors.col(" << lambdaIdx << ")" << std::endl << eigenvectors.col(lambdaIdx) << std::endl;
+				std::cout << "eigenvectors" << std::endl << eigenvectors << std::endl;
 			}
-			std::cout << "eigenvectors.col(" << lambdaIdx << ")" << std::endl << eigenvectors.col(lambdaIdx) << std::endl;
-			std::cout << "eigenvectors" << std::endl << eigenvectors << std::endl;
 			cut_start.push_back((int)cut_value.size());
 
 			double verif_value(0);
@@ -539,7 +557,9 @@ bool is_sdp_set(IntVector const & sdp_set, StrVector const & col_name, NumberVec
 					cut_index.push_back(id);
 					cut_value.push_back(factor*vi*vj*scale_factor);
 					verif_value += cut_value.back()*x[id];
-					std::cout << col_name[id] << " | " << cut_value.back() << std::endl;
+					if (active_log) {
+						std::cout << col_name[id] << " | " << cut_value.back() << std::endl;
+					}
 				}
 			}
 
@@ -572,7 +592,7 @@ void XPRS_CC optimizermsg(XPRSprob prob, void* data, const char *sMsg, int nLen,
 	case 3:       /* warning */
 	case 2:       /* dialogue */
 	case 1:       /* information */
-		std::cout << sMsg << std::endl;
+		//std::cout << sMsg << std::endl;
 		break;
 	default:
 		fflush(NULL);
