@@ -6,14 +6,15 @@
 #include "Timer.h"
 
 void read_graph(std::string const & file_name, SparseMatrix & output, bool complete_graph) {
+	Timer timer;
 	std::ifstream file(file_name.c_str());
 	int i;
 	int j;
 	int n(0);
 	std::map<int, IntSet> network_graph;
 	size_t e(0);
+
 	while (file >> i && file >> j) {
-		
 		n = std::max(n, i);
 		n = std::max(n, j);
 		if (network_graph[i - 1].insert(j - 1).second) {
@@ -21,14 +22,17 @@ void read_graph(std::string const & file_name, SparseMatrix & output, bool compl
 			network_graph[j - 1].insert(i - 1);
 		}
 	}
-	std::map<int, IntSet> sparsity_pattern;
+	//std::map<int, IntSet> sparsity_pattern;
+	std::vector<IntSet> sparsity_pattern(n);
+	size_t total_e(e);
 	if (complete_graph) {
 		for (auto const & kvp : network_graph) {
 			//triplets.insert({ kvp.first, kvp.first, kvp.second.size()+1});
 			// adding power flow balances 
 			for (auto i : kvp.second) {
 				for (auto j : kvp.second) {
-					if (i != j) {
+					if (i < j) {
+						++total_e;
 						sparsity_pattern[i].insert(j);
 						sparsity_pattern[j].insert(i);
 					}
@@ -36,20 +40,26 @@ void read_graph(std::string const & file_name, SparseMatrix & output, bool compl
 			}
 		}
 	}
-	else
-		sparsity_pattern = network_graph;
-	std::set<Triplet, TripletPredicate> triplets;
-	for (auto const & i : sparsity_pattern) {
-		for (auto const j : i.second) {
-			triplets.insert({ i.first, j, 1.0 });
-			triplets.insert({ j, i.first, 1.0 });
+	else {
+		for (auto const & i : network_graph)
+			sparsity_pattern[i.first] = i.second;
+	}
+	//std::set<Triplet, TripletPredicate> triplets;
+	std::vector<Triplet> triplets;
+	triplets.reserve(2 * total_e + n);
+	for (int i(0); i < n; ++i) {
+		for (auto const j : sparsity_pattern[i]) {
+			if (i < j) {
+				triplets.push_back({ i, j, 1.0 });
+				triplets.push_back({ j, i, 1.0 });
+			}
 		}
-		triplets.insert({ i.first, i.first, 1.0 + i.second.size() });
+		triplets.push_back({ i, i, 1.0 + sparsity_pattern[i].size() });
 	}
 	size_t t = triplets.size();
 	std::cout << "Read    a graph with " << e << " links" << std::endl;
 	std::cout << "Created a graph with " << (t - n) / 2 << " links" << std::endl;
-	std::cout << "Artificial links     " << ((t - n)/2 - e) << std::endl;
+	std::cout << "Artificial links     " << ((t - n) / 2 - e) << ", " << timer.elapsed() << " s" << std::endl;
 	output = SparseMatrix(n, n);
 	output.setFromTriplets(triplets.begin(), triplets.end());
 }
