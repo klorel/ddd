@@ -53,17 +53,21 @@ void build_chordal_extension(SparseMatrix const & input, SparsityPattern & outpu
 	//std::cout << std::endl;
 	int const n(static_cast<int>(input.cols()));
 	output.assign(n, IntSet());
+	size_t newLinks(0);
 	for (int k = 0; k < L.outerSize(); ++k) {
 		for (SparseMatrix::InnerIterator it(L, k); it; ++it)
 		{
 			double value = it.value();
-			int i = it.row();   // row index
-			int j = it.col();   // col index (here it is equal to k)
-			int index = it.index(); // inner index, here it is equal to it.row()
+			SparseMatrix::Index i = it.row();   // row index
+			SparseMatrix::Index j = it.col();   // col index (here it is equal to k)
+			SparseMatrix::Index index = it.index(); // inner index, here it is equal to it.row()
 
 			if (std::fabs(value) > 1e-10) {
-				output[i].insert(j);
-				output[j].insert(i);
+				output[i].insert((int)j);
+				output[j].insert((int)i);
+				if (std::fabs(input.coeff(i, j)) > 1e-10) {
+					++newLinks;
+				}
 #if __MY_DEBUG__
 				std::cout << std::setw(6) << i;
 				std::cout << std::setw(6) << j;
@@ -73,6 +77,7 @@ void build_chordal_extension(SparseMatrix const & input, SparsityPattern & outpu
 
 		}
 	}
+	std::cout << "chordal extension created " << newLinks << " new links" << std::endl;
 //	for (int i(0); i < n; ++i) {
 //		for (int j(0); j < i; ++j) {
 //			if (std::fabs(L.coeff(i, j)) > 1e-10) {

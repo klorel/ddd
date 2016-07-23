@@ -11,11 +11,15 @@ void read_graph(std::string const & file_name, SparseMatrix & output, bool compl
 	int j;
 	int n(0);
 	std::map<int, IntSet> network_graph;
+	size_t e(0);
 	while (file >> i && file >> j) {
+		
 		n = std::max(n, i);
 		n = std::max(n, j);
-		network_graph[i - 1].insert(j - 1);
-		network_graph[j - 1].insert(i - 1);
+		if (network_graph[i - 1].insert(j - 1).second) {
+			++e;
+			network_graph[j - 1].insert(i - 1);
+		}
 	}
 	std::map<int, IntSet> sparsity_pattern;
 	if (complete_graph) {
@@ -42,6 +46,10 @@ void read_graph(std::string const & file_name, SparseMatrix & output, bool compl
 		}
 		triplets.insert({ i.first, i.first, 1.0 + i.second.size() });
 	}
+	size_t t = triplets.size();
+	std::cout << "Read    a graph with " << e << " links" << std::endl;
+	std::cout << "Created a graph with " << (t - n) / 2 << " links" << std::endl;
+	std::cout << "Artificial links     " << ((t - n)/2 - e) << std::endl;
 	output = SparseMatrix(n, n);
 	output.setFromTriplets(triplets.begin(), triplets.end());
 }
@@ -81,8 +89,8 @@ int main(int argc, char**argv) {
 	}
 	return 0;
 	//sdp1.print("my_sdp.dat");
-	SdpSolver solver(sdp1);
-	//solver.launch_mosek();
+	//SdpSolver solver(sdp1);
+	////solver.launch_mosek();
 
-	solver.launch_xpress();
+	//solver.launch_xpress();
 }
