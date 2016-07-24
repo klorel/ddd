@@ -76,27 +76,15 @@ int main(int argc, char**argv) {
 	}
 
 	//sdp1.read(file_name);
-	//IntSetPtrSet output;
-	//sdp1.matrix_completion(output);
-
 	SparseMatrix m;
 	read_graph(file_name, m, complete_graph);
+
+
 	Timer timer;
 	IntSetPtrSet cliques;
 	work_on(m, cliques);
 	std::cout << "clique decomposition took  " << timer.elapsed() << std::endl;
-
-	size_t max_size(0);
-	std::map<size_t, size_t> clique_distribution;
-	for (auto c : cliques) {
-		max_size = std::max(c->size(), max_size);
-		++clique_distribution[c->size()];
-
-	}
-	std::cout << std::setw(8) << "size" << "(" << std::setw(8) << "number" << ")" << std::endl;
-	for (auto const & kvp : clique_distribution) {
-		std::cout << std::setw(8) << kvp.first << "(" << std::setw(8) << kvp.second << ")" << std::endl;
-	}
+	display_info(cliques);
 	return 0;
 	//sdp1.print("my_sdp.dat");
 	//SdpSolver solver(sdp1);

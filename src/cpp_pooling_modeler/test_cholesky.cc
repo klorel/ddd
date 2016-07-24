@@ -261,3 +261,17 @@ void build(SparsityPattern & input, SparseMatrix & output) {
 	output.setZero();
 	output.setFromTriplets(triplets.begin(), triplets.end());
 }
+
+void display_info(IntSetPtrSet const & cliques) {
+	size_t max_size(0);
+	std::map<size_t, size_t> clique_distribution;
+	for (auto c : cliques) {
+		max_size = std::max(c->size(), max_size);
+		++clique_distribution[c->size()];
+
+	}
+	std::cout << std::setw(8) << "size" << "(" << std::setw(8) << "number" << ")" << std::endl;
+	for (auto const & kvp : clique_distribution) {
+		std::cout << std::setw(8) << kvp.first << "(" << std::setw(8) << kvp.second << ")" << std::endl;
+	}
+}

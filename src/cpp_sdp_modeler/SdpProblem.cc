@@ -418,6 +418,9 @@ void SdpProblem::matrix_completion(IntSetPtrSet & output)const {
 			is_diagonal[kvp.first[1] - 1] = false;
 		}
 	}
+	// complete graphe to have a clique by constraint (i,j) = 1 if (i,k) and (k,j)
+
+	//
 
 	for (size_t b(0); b < nblock(); ++b) {
 		Block const & block(_blocks[b]);
@@ -437,6 +440,7 @@ void SdpProblem::matrix_completion(IntSetPtrSet & output)const {
 				m.setFromTriplets(triplets[b].begin(), triplets[b].end());
 				IntSetPtrSet cliques;
 				work_on(m, cliques);
+				display_info(cliques);
 			}
 			else {
 

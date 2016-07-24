@@ -40,3 +40,5 @@ void build_chordal_extension(SparseMatrix const & input, SparsityPattern & outpu
 void build_perfect_elimination_order(SparsityPattern const & input, IntVector & output);
 
 void build_clique_decomposition(IntVector const & sigma, SparsityPattern const & chordal_extension, IntSetPtrSet & output);
+
+void display_info(IntSetPtrSet const &);
