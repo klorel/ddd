@@ -59,6 +59,8 @@ public:
 
 	int nvars()const;
 	int nctrs()const;
+
+	void clear();
 public:
 	//void amplExport(std::string const &)const;
 	//void addSparsityPattern(SparsityPattern & sparsityPattern)const;

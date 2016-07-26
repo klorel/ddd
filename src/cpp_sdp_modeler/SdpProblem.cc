@@ -13,11 +13,14 @@ int SdpProblem::newy(double cost) {
 int SdpProblem::newBlock(int size) {
 	Block block;
 	block._size = size;
+
 	if (!_blocks.empty()) {
-		block._begin = _blocks.back()._begin+_blocks.back().nz();
+		block._begin = _blocks.back()._begin + _blocks.back().nz();
+		block._previous_dim = _blocks.back()._previous_dim + std::abs(_blocks.back()._size);
 	}
 	else {
 		block._begin = 0;
+		block._previous_dim = 0;
 	}
 	_blocks.push_back(block);
 	return static_cast<int>(_blocks.size());
@@ -255,9 +258,15 @@ int numBefore(int n, int line) {
 int SdpProblem::nz()const {
 	int const last_id(std::abs(_blocks.back()._size));
 	int const i(id((int)_blocks.size() - 1, last_id - 1, last_id - 1));
-	return 1+i ;
+	return 1 + i;
 }
+int SdpProblem::dim()const {
+	if (_blocks.empty())
+		return 0;
+	else
+		return _blocks.back()._previous_dim + std::abs(_blocks.back()._size);
 
+}
 
 int SdpProblem::nblock()const {
 	return (int)_blocks.size();
@@ -349,7 +358,7 @@ void SdpProblem::dual(Matrix & result)const {
 		if (block._size > 0) {
 			for (int j(0); j < block._size; ++j)
 				for (int k(j); k < block._size; ++k) {
-					result[{i+1, j + 1, k + 1, 0}] +=0;
+					result[{i + 1, j + 1, k + 1, 0}] += 0;
 				}
 		}
 		else {
@@ -407,12 +416,48 @@ void SdpProblem::read(std::string const & file_name) {
 	}
 }
 
+void SdpProblem::sparsity_pattern_1(SparsityPattern & output)const {
+	output.clear();
+	output.assign(dim(), IntSet());
+	size_t e(0);
+	for (auto const & kvp : _matrix) {
+		Block const & block(_blocks[kvp.first[1] - 1]);
+		int const i(block._previous_dim + kvp.first[2] - 1);
+		int const j(block._previous_dim + kvp.first[3] - 1);
+
+		if (i < j) {
+			++e;
+			output[i].insert(j);
+			output[j].insert(i);
+		}
+	}
+	std::cout << "Allocated sparsity pattern of size " << dim() << ", " << e << std::endl;
+}
+void SdpProblem::sparsity_pattern_2(SparsityPattern & output)const {
+	output.clear();
+	SparsityPattern basic;
+	sparsity_pattern_1(basic);
+	for (int i(0); i < basic.size(); ++i) {
+		for (auto const j : basic[i]) {
+			for (auto const k : basic[i]) {
+				output[j].insert(k);
+				output[k].insert(j);
+			}
+			if (i != j) {
+				output[i].insert(j);
+				output[j].insert(i);
+			}
+		}
+	}
+
+	output.assign(dim(), IntSet());
+}
 void SdpProblem::matrix_completion(IntSetPtrSet & output)const {
 	output.clear();
 	std::vector<std::set<Triplet, TripletPredicate>> triplets(nblock());
 	std::vector<bool> is_diagonal(nblock(), true);
 	for (auto const & kvp : _matrix) {
-		triplets[kvp.first[1] - 1].insert({ kvp.first[2] - 1, kvp.first[3] - 1 , 1 });		
+		triplets[kvp.first[1] - 1].insert({ kvp.first[2] - 1, kvp.first[3] - 1 , 1 });
 		if (kvp.first[2] != kvp.first[3]) {
 			triplets[kvp.first[1] - 1].insert({ kvp.first[3] - 1, kvp.first[2] - 1 , 1 });
 			is_diagonal[kvp.first[1] - 1] = false;
@@ -421,13 +466,23 @@ void SdpProblem::matrix_completion(IntSetPtrSet & output)const {
 	// complete graphe to have a clique by constraint (i,j) = 1 if (i,k) and (k,j)
 
 	//
-
+	std::cout << std::setw(10) << "block";
+	std::cout << std::setw(10) << "size";
+	std::cout << std::setw(10) << "edges";
+	std::cout << std::setw(10) << "density";
+	std::cout << "  ";
+	std::cout << std::setw(10) << "ncliques";
+	std::cout << std::setw(10) << "max_size";
+	std::cout << std::endl;
 	for (size_t b(0); b < nblock(); ++b) {
 		Block const & block(_blocks[b]);
 		int const n(block._size);
 		if (block._size > 0) {
 			if (!is_diagonal[b]) {
-				std::cout << "treating block " << b << " of size " << n << ", number of edges " << triplets[b].size()<<", sparsity is "<< triplets[b].size()/(1.0*n*n)*100<< " %" << std::endl;
+				std::cout << std::setw(10) << b;
+				std::cout << std::setw(10) << n;
+				std::cout << std::setw(10) << triplets[b].size();
+				std::cout << std::setw(10) << triplets[b].size() / (1.0*n*n) * 100 << " %";
 				NumberVector degree(n, 0);
 				for (auto const & t : triplets[b]) {
 					degree[t.col()] += 1;
@@ -440,11 +495,36 @@ void SdpProblem::matrix_completion(IntSetPtrSet & output)const {
 				m.setFromTriplets(triplets[b].begin(), triplets[b].end());
 				IntSetPtrSet cliques;
 				work_on(m, cliques);
-				display_info(cliques);
+				PosInt2PosInt clique_distribution;
+				size_t max_size = get_info(cliques, clique_distribution);
+				size_t ncliques(0);
+				for (auto const & kvp : clique_distribution)
+					ncliques += kvp.second;
+				std::cout << std::setw(10) << ncliques;
+				std::cout << std::setw(10) << max_size;
+				std::cout << std::endl;
+				//display_info(cliques);
+				for (auto const & clique : cliques) {
+					IntSetPtr ptr(new IntSet);
+					for (auto const & i : *clique) {
+						ptr->insert(i + block._previous_dim);
+					}
+					output.insert(ptr);
+				}
 			}
 			else {
+				std::cout << std::setw(10) << b;
+				std::cout << std::setw(10) << n;
+				std::cout << std::setw(10) << triplets[b].size();
+				std::cout << std::setw(10) << triplets[b].size() / (1.0*n*n) * 100 << " %";
+				std::cout << std::setw(10) << 1;
+				std::cout << std::setw(10) << n;
+				std::cout << std::endl;
+				IntSetPtr ptr(new IntSet);
+				for (int i(0); i < block._size; ++i)
+					ptr->insert(i + block._previous_dim);
+				output.insert(ptr);
 
-				std::cout << "diagonal block " <<b<< std::endl;
 			}
 		}
 	}

@@ -216,7 +216,15 @@ int Problem::nvars()const {
 int Problem::nctrs()const {
 	return static_cast<int>(_ctrnames.size());
 }
+void Problem::clear() {
+	_ctrpools.clear();
+	_ctrnames.clear();
+	_constraints.clear();
 
+	_varpools.clear();
+	_varnames.clear();
+	_minimize = 0;
+}
 
 std::ostream & operator<<(std::ostream & lhs, Problem const & rhs) {
 	rhs.print(lhs);

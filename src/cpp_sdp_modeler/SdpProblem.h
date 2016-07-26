@@ -14,6 +14,7 @@ public:
 	public:
 		int _size;
 		int _begin;
+		int _previous_dim;
 	public:
 		int nz()const {
 			return _size < 0 ? std::abs(_size) : _size*(_size + 1) / 2;
@@ -38,12 +39,15 @@ public:
 
 	int id(int i, int j, int k)const;
 	int nz()const;
+	int dim()const;
 	int nblock()const;
 	int nctr()const;
 	void dual(Matrix &)const;
 
 	void read(std::string const &);
 	void matrix_completion(IntSetPtrSet & output)const;
+	void sparsity_pattern_1(SparsityPattern & output)const;
+	void sparsity_pattern_2(SparsityPattern & output)const;
 public:
 	NumberVector _b;
 	Matrix _matrix;

@@ -77,7 +77,7 @@ void build_chordal_extension(SparseMatrix const & input, SparsityPattern & outpu
 
 		}
 	}
-	std::cout << "chordal extension created " << newLinks << " new links" << std::endl;
+	//std::cout << "chordal extension created " << newLinks << " new links" << std::endl;
 //	for (int i(0); i < n; ++i) {
 //		for (int j(0); j < i; ++j) {
 //			if (std::fabs(L.coeff(i, j)) > 1e-10) {
@@ -262,14 +262,19 @@ void build(SparsityPattern & input, SparseMatrix & output) {
 	output.setFromTriplets(triplets.begin(), triplets.end());
 }
 
-void display_info(IntSetPtrSet const & cliques) {
+
+size_t get_info(IntSetPtrSet const & cliques, PosInt2PosInt& clique_distribution) {
 	size_t max_size(0);
-	std::map<size_t, size_t> clique_distribution;
+	clique_distribution.clear();
 	for (auto c : cliques) {
 		max_size = std::max(c->size(), max_size);
 		++clique_distribution[c->size()];
-
 	}
+	return max_size;
+}
+void display_info(IntSetPtrSet const & cliques) {
+	PosInt2PosInt clique_distribution;
+	size_t max_size = get_info(cliques, clique_distribution);
 	std::cout << std::setw(8) << "size" << "(" << std::setw(8) << "number" << ")" << std::endl;
 	for (auto const & kvp : clique_distribution) {
 		std::cout << std::setw(8) << kvp.first << "(" << std::setw(8) << kvp.second << ")" << std::endl;

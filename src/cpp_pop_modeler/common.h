@@ -25,6 +25,8 @@
 typedef double Number;
 
 typedef std::vector<Number> NumberVector;
+typedef std::shared_ptr<NumberVector> NumberVectorPtr;
+typedef std::vector<NumberVectorPtr> NumberVectorPtrVector;
 
 typedef std::vector<NumberVector> NumberDenseMatrix;
 
@@ -119,6 +121,7 @@ class RealMonomial;
 class ComplexMonomial;
 class ComplexPolynomial;
 class ComplexMonomialPredicate;
+
 
 class IndexedPool;
 

@@ -4,6 +4,7 @@
 #include "SdpSolver.h"
 #include "test_cholesky.h"
 #include "Timer.h"
+#include "MatPowerData.h"
 
 void read_graph(std::string const & file_name, SparseMatrix & output, bool complete_graph) {
 	Timer timer;
@@ -28,7 +29,6 @@ void read_graph(std::string const & file_name, SparseMatrix & output, bool compl
 	if (complete_graph) {
 		for (auto const & kvp : network_graph) {
 			//triplets.insert({ kvp.first, kvp.first, kvp.second.size()+1});
-			// adding power flow balances 
 			for (auto i : kvp.second) {
 				for (auto j : kvp.second) {
 					if (i < j) {
@@ -36,6 +36,10 @@ void read_graph(std::string const & file_name, SparseMatrix & output, bool compl
 						sparsity_pattern[i].insert(j);
 						sparsity_pattern[j].insert(i);
 					}
+				}
+				if (i != kvp.first) {
+					sparsity_pattern[i].insert(kvp.first);
+					sparsity_pattern[kvp.first].insert(i);
 				}
 			}
 		}
@@ -65,6 +69,12 @@ void read_graph(std::string const & file_name, SparseMatrix & output, bool compl
 }
 
 int main(int argc, char**argv) {
+	MatPowerData matPowerData;
+
+	matPowerData.read_file(argv[1]);
+	Problem opf;
+	matPowerData.generate_opf(opf);
+	return 0;
 	SdpProblem sdp1;
 	//get_sdp_1(sdp1);
 	std::string const file_name(argv[1]);
@@ -74,15 +84,18 @@ int main(int argc, char**argv) {
 		std::stringstream buffer(argv[2]);
 		buffer >> complete_graph;
 	}
+	IntSetPtrSet cliques;
 
 	//sdp1.read(file_name);
+	//SparsityPattern sp;
+	//sdp1.sparsity_pattern_1(sp);
 	SparseMatrix m;
 	read_graph(file_name, m, complete_graph);
 
-
 	Timer timer;
-	IntSetPtrSet cliques;
 	work_on(m, cliques);
+	//sdp1.matrix_completion(cliques);
+
 	std::cout << "clique decomposition took  " << timer.elapsed() << std::endl;
 	display_info(cliques);
 	return 0;

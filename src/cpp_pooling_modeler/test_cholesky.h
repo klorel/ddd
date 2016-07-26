@@ -42,3 +42,5 @@ void build_perfect_elimination_order(SparsityPattern const & input, IntVector & 
 void build_clique_decomposition(IntVector const & sigma, SparsityPattern const & chordal_extension, IntSetPtrSet & output);
 
 void display_info(IntSetPtrSet const &);
+
+size_t get_info(IntSetPtrSet const & cliques, PosInt2PosInt& clique_distribution);
