@@ -6,7 +6,7 @@ public:
 	bool operator()(ComplexMonomial const & lhs, ComplexMonomial const & rhs)const {
 		bool result;
 		if (lhs.zero())
-			result = true;
+			result = !rhs.zero();
 		else if (rhs.zero())
 			result = false;
 		else if (lhs.zH() == rhs.zH()) {

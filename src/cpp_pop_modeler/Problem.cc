@@ -1,6 +1,20 @@
 #include "Problem.h"
 #include "Constraint.h"
 
+
+void Problem::get_all_monomial(ComplexMonomialPtr2Int & output)const {
+	output.clear();
+	minimize().get_all_monomial(output);
+	for (auto const & ctr : _constraints) {
+		ctr.f().get_all_monomial(output);
+	}
+	int i(-1);
+	for (auto & kvp : output) {
+		kvp.second = ++i;
+		//std::cout << kvp.first << " | " << kvp.first->z().degree() << ", " << kvp.first->zH().degree() << std::endl;
+	}
+}
+
 Problem::Problem()
 {
 }
@@ -102,7 +116,7 @@ IndexedPool const & Problem::ctrpool(std::string const &name)const {
 }
 
 IndexedPool const & Problem::newvarpool(std::string const & poolname, size_t ids) {
-	return * newpool(_varpools, _varnames, poolname, ids);
+	return *newpool(_varpools, _varnames, poolname, ids);
 }
 
 IndexedPool const & Problem::newvarpool(std::string const & poolname, IntPairSet const & ids) {
@@ -134,7 +148,7 @@ IndexedPool const & Problem::newctrpool(std::string const & poolname, IntPairSet
 
 IndexedPoolPtr newpool(Str2Pool & pool, StrPtrVector & names, std::string const & poolname, size_t ids) {
 	auto result = pool.insert({ poolname, IndexedPoolPtr(new IndexedPool1Dense(poolname, names, ids)) });
-	if(!result.second)
+	if (!result.second)
 		throw std::invalid_argument("var pool name was not created");
 	return result.first->second;
 }

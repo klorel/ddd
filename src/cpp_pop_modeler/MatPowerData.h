@@ -22,6 +22,7 @@ public:
 class MatPowerData {
 public:
 public:
+	Number baseMVA;
 	enum Bus {
 #define __MAT_POWER_DATA__(x) bus_ ## x,
 #include "MatPowerBus.hxx"
@@ -81,6 +82,7 @@ public:
 	NumberVectorPtrVector gen;
 	NumberVectorPtrVector branch;
 	GencostPtrVector gencost;
+	IntVector bus2index;
 
 
 };

@@ -6,7 +6,11 @@ std::ostream & operator<<(std::ostream & stream, ComplexPolynomial const & rhs) 
 	return stream;
 }
 
-
+void ComplexPolynomial::get_all_monomial(ComplexMonomialPtr2Int & output)const {
+	for (auto const & term : terms()) {
+		output.insert({ term.first, 1 });
+	}
+}
 
 
 ComplexPolynomial operator+(ComplexPolynomial const & rhs) {
@@ -48,6 +52,7 @@ ComplexPolynomial operator*(ComplexPolynomial const & lhs, ComplexPolynomial con
 }
 ComplexPolynomial operator/(ComplexPolynomial const & lhs, ComplexPolynomial const & rhs) {
 	ComplexPolynomial result;
+	
 	if (!rhs.isConstant()) {
 		throw std::invalid_argument("in operator/(ComplexPolynomial const &lhs, ComplexPolynomial const &rhs) rhs has a non zero degree");
 	}
@@ -57,9 +62,11 @@ ComplexPolynomial operator/(ComplexPolynomial const & lhs, ComplexPolynomial con
 			throw std::invalid_argument("in operator/(ComplexPolynomial const &lhs, ComplexPolynomial const &rhs): rhs is zero");
 		}
 		else {
-			result.insert(lhs, ComplexNumber(1, 0) / constant);
+			ComplexNumber inv = ComplexNumber(1.0, 0) / constant;
+			result.insert(lhs, inv);
 		}
 	}
+	//std::cout << lhs << " / " << rhs << " = "<< result << std::endl;
 	return result;
 }
 
@@ -172,8 +179,10 @@ std::ostream & ComplexPolynomial::print(std::ostream & stream, Problem const & r
 }
 
 void ComplexPolynomial::operator+=(ComplexPolynomial const & rhs) {
+	//std::cout << *this << " += " << rhs ;
 	ComplexPolynomial result = (*this) + rhs;
 	_terms = result._terms;
+	//std::cout << " = " << *this << std::endl;
 }
 
 void ComplexPolynomial::operator-=(ComplexPolynomial const & rhs) {

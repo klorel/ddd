@@ -37,7 +37,7 @@ std::string format(ComplexNumber const & value) {
 	std::stringstream buffer;
 	if (!isZero(value)) {
 		if(!isZero(value.real()) && !isZero(value.imag()))
-			buffer << "("<<format(value.real())<< format(value.real())<<"i)";
+			buffer << "("<<format(value.real())<< format(value.imag())<<"i)";
 		else if (!isZero(value.real()))
 			buffer << format(value.real());
 		else if (!isZero(value.imag()))

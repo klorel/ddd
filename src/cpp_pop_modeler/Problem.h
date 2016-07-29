@@ -7,6 +7,8 @@
 class Problem
 {
 public:
+	void get_all_monomial(ComplexMonomialPtr2Int & )const;
+public:
 	Problem();
 	~Problem();
 public:

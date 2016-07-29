@@ -35,7 +35,7 @@ void print_it_label(std::ostream & stream, ItLabels const & itLabels, Labels con
 
 void work_on(SparseMatrix const & sm, IntSetPtrSet &);
 
-void build_chordal_extension(SparseMatrix const & input, SparsityPattern & output);
+void build_chordal_extension(SparseMatrix const & input, SparsityPattern & output, IntVector & order);
 
 void build_perfect_elimination_order(SparsityPattern const & input, IntVector & output);
 

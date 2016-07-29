@@ -70,10 +70,18 @@ void read_graph(std::string const & file_name, SparseMatrix & output, bool compl
 
 int main(int argc, char**argv) {
 	MatPowerData matPowerData;
-
+	Timer timer;
 	matPowerData.read_file(argv[1]);
+	std::cout << "matPowerData.read_file done : " << timer.elapsed() << std::endl;
+	timer.restart();
 	Problem opf;
 	matPowerData.generate_opf(opf);
+	std::cout << "matPowerData.generate_opf done : " << timer.elapsed() << std::endl;
+	timer.restart();
+	ComplexMonomialPtr2Int monomials;
+	opf.get_all_monomial(monomials);
+	std::cout << "opf.get_all_monomial done : " << timer.elapsed() << std::endl;
+	std::cout << "Number of monomials " << monomials.rbegin()->second+1 << std::endl;
 	return 0;
 	SdpProblem sdp1;
 	//get_sdp_1(sdp1);
@@ -92,7 +100,7 @@ int main(int argc, char**argv) {
 	SparseMatrix m;
 	read_graph(file_name, m, complete_graph);
 
-	Timer timer;
+	timer.restart();
 	work_on(m, cliques);
 	//sdp1.matrix_completion(cliques);
 

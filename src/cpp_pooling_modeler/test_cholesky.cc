@@ -15,8 +15,10 @@ std::ostream & operator<<(std::ostream & stream, Labels const & labels) {
 	return stream;
 }
 std::ostream & operator<<(std::ostream & stream, std::vector<int> const & labels) {
+	int max_value = *std::max_element(labels.begin(), labels.end());
+	int width((int)ceil(std::log(max_value) / std::log(10)));
 	for (auto label : labels) {
-		stream << label << " ";
+		stream << std::setw(width+1)<<label;
 	}
 	return stream;
 }
@@ -31,7 +33,7 @@ void print_it_label(std::ostream & stream, ItLabels const & itLabels, Labels con
 	}
 }
 
-void build_chordal_extension(SparseMatrix const & input, SparsityPattern & output) {
+void build_chordal_extension(SparseMatrix const & input, SparsityPattern & output, IntVector & order) {
 
 #if __MY_DEBUG__==2
 	std::cout << "Building chrodal extension of "<<std::endl << input << std::endl;
@@ -77,6 +79,28 @@ void build_chordal_extension(SparseMatrix const & input, SparsityPattern & outpu
 
 		}
 	}
+	SparseMatrix sequence(n, 1);
+	Triplets triplets;
+	for (int i(0); i < n; ++i) {
+		triplets.push_back({ i,0,i*1.0 });
+	}
+	sequence.setFromTriplets(triplets.begin(), triplets.end());	
+	SparseMatrix q = lltof.permutationPinv()*sequence;
+
+	order.clear();
+	for (int k = 0; k < q.outerSize(); ++k) {
+		for (SparseMatrix::InnerIterator it(q, k); it; ++it)
+		{
+			double value = it.value();
+			SparseMatrix::Index i = it.row();   // row index
+			SparseMatrix::Index j = it.col();   // col index (here it is equal to k)
+			SparseMatrix::Index index = it.index(); // inner index, here it is equal to it.row()
+			//std::cout << std::setw(4) << i;
+			//std::cout << std::setw(4) << j;
+			order.push_back((int) value);
+		}
+	}
+	//std::cout << "perm     " << order << std::endl;
 	//std::cout << "chordal extension created " << newLinks << " new links" << std::endl;
 //	for (int i(0); i < n; ++i) {
 //		for (int j(0); j < i; ++j) {
@@ -94,7 +118,6 @@ void build_chordal_extension(SparseMatrix const & input, SparsityPattern & outpu
 //			}
 //		}
 //	}
-
 	//std::cout << std::left << std::setw(50) << "chordal extraction : " << timer.elapsed() << std::endl;
 
 }
@@ -163,6 +186,7 @@ void build_perfect_elimination_order(SparsityPattern const & input, IntVector & 
 #endif
 #if __MY_DEBUG__
 	std::cout << std::endl;
+	std::cout << "order is " << output << std::endl;
 #endif
 }
 
@@ -229,10 +253,11 @@ void build_clique_decomposition(IntVector const & sigma, SparsityPattern const &
 
 void work_on(SparseMatrix const & sm, IntSetPtrSet & output) {
 	Timer timer;
-	SparsityPattern chordal_extension;	
-	build_chordal_extension(sm, chordal_extension);
-	//std::cout << std::left << std::setw(50) << "build_chordal_extension : "<<timer.elapsed() << std::endl;
 	IntVector perfect_elimination_order;
+	SparsityPattern chordal_extension;	
+	build_chordal_extension(sm, chordal_extension, perfect_elimination_order);
+	//std::cout << std::left << std::setw(50) << "build_chordal_extension : "<<timer.elapsed() << std::endl;
+	
 	timer.restart();
 	build_perfect_elimination_order(chordal_extension, perfect_elimination_order);
 	//std::cout << std::left << std::setw(50) << "build_perfect_elimination_order : " << timer.elapsed() << std::endl;
@@ -268,7 +293,7 @@ size_t get_info(IntSetPtrSet const & cliques, PosInt2PosInt& clique_distribution
 	clique_distribution.clear();
 	for (auto c : cliques) {
 		max_size = std::max(c->size(), max_size);
-		++clique_distribution[c->size()];
+		++clique_distribution[(int)c->size()];
 	}
 	return max_size;
 }

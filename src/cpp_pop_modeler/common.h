@@ -128,14 +128,14 @@ class IndexedPool;
 // typedef
 typedef std::shared_ptr<ComplexMonomial> ComplexMonomialPtr;
 typedef std::shared_ptr<RealMonomial> RealMonomialPtr;
-
-
-typedef std::shared_ptr<ComplexMonomial> ComplexMonomialPtr;
 typedef std::map<ComplexMonomialPtr, ComplexNumber, ComplexMonomialPredicate> ComplexTerms;
+typedef std::map<ComplexMonomialPtr, int, ComplexMonomialPredicate> ComplexMonomialPtr2Int;
 typedef std::shared_ptr<ComplexTerms> ComplexTermsPtr;
 
 typedef std::shared_ptr<IndexedPool> IndexedPoolPtr;
 typedef std::map<std::string, IndexedPoolPtr> Str2Pool;
+
+
 
 // operator overloading
 std::ostream & printAlpha(std::ostream & stream, IntVector const & rhs);
