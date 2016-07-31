@@ -21,6 +21,7 @@ public:
 	std::ostream & print(std::ostream & stream, Problem const &)const;
 	ComplexMonomialPtr conjugate()const;
 	
+	int degree()const;
 private:
 	std::tuple<RealMonomialPtr, RealMonomialPtr> _non_zero;
 public:

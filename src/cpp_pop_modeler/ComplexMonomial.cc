@@ -17,6 +17,10 @@ ComplexMonomialPtr ComplexMonomial::BuildH(PosInt id) {
 	return result;
 }
 
+int ComplexMonomial::degree()const {
+	return std::max(z().degree(), zH().degree());
+}
+
 RealMonomial & ComplexMonomial::zH() {
 	return *std::get<ZH>(_non_zero);
 }

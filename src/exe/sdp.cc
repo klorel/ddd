@@ -69,47 +69,60 @@ void read_graph(std::string const & file_name, SparseMatrix & output, bool compl
 }
 
 int main(int argc, char**argv) {
-	MatPowerData matPowerData;
-	Timer timer;
-	matPowerData.read_file(argv[1]);
-	std::cout << "matPowerData.read_file done : " << timer.elapsed() << std::endl;
-	timer.restart();
-	Problem opf;
-	matPowerData.generate_opf(opf);
-	std::cout << "matPowerData.generate_opf done : " << timer.elapsed() << std::endl;
-	timer.restart();
-	ComplexMonomialPtr2Int monomials;
-	opf.get_all_monomial(monomials);
-	std::cout << "opf.get_all_monomial done : " << timer.elapsed() << std::endl;
-	std::cout << "Number of monomials " << monomials.rbegin()->second+1 << std::endl;
+	Problem p;
+	IndexedPool const & x = p.newvarpool("x", 2);
+	ComplexPolynomial term1 = (1 + x(0)*x(0));
+	ComplexPolynomial term2 = (1 + x(1)*x(1));
+	ComplexPolynomial term3 = (1 + x(0)+x(1));
+	p.minimize() = term1*term1 + term2*term2 - 2 * term3*term3;
+	std::cout << p << std::endl;
 	return 0;
-	SdpProblem sdp1;
-	//get_sdp_1(sdp1);
-	std::string const file_name(argv[1]);
-	std::cout << "reading " << file_name << std::endl;
-	bool complete_graph(false);
-	if (argc > 2) {
-		std::stringstream buffer(argv[2]);
-		buffer >> complete_graph;
-	}
-	IntSetPtrSet cliques;
+	//MatPowerData matPowerData;
+	//Timer timer;
+	//matPowerData.read_file(argv[1]);
+	//std::cout << "matPowerData.read_file done : " << timer.elapsed() << std::endl;
+	//timer.restart();
+	//Problem opf;
+	//matPowerData.generate_opf(opf);
+	//std::cout << "matPowerData.generate_opf done : " << timer.elapsed() << std::endl;
+	//timer.restart();
+	//ComplexMonomialPtr2Int monomials;
+	//opf.get_all_monomial(monomials);
+	//std::cout << "opf.get_all_monomial done : " << timer.elapsed() << std::endl;
+	//std::cout << "Number of monomials " << monomials.rbegin()->second+1 << std::endl;
+	//int max_degree(0);
+	//for (auto const & kvp : monomials) {
+	//	max_degree = std::max(max_degree, kvp.first->degree());
+	//}
+	//std::cout << "Maximum degree is " << max_degree << std::endl;
+	//return 0;
+	//SdpProblem sdp1;
+	////get_sdp_1(sdp1);
+	//std::string const file_name(argv[1]);
+	//std::cout << "reading " << file_name << std::endl;
+	//bool complete_graph(false);
+	//if (argc > 2) {
+	//	std::stringstream buffer(argv[2]);
+	//	buffer >> complete_graph;
+	//}
+	//IntSetPtrSet cliques;
 
-	//sdp1.read(file_name);
-	//SparsityPattern sp;
-	//sdp1.sparsity_pattern_1(sp);
-	SparseMatrix m;
-	read_graph(file_name, m, complete_graph);
+	////sdp1.read(file_name);
+	////SparsityPattern sp;
+	////sdp1.sparsity_pattern_1(sp);
+	//SparseMatrix m;
+	//read_graph(file_name, m, complete_graph);
 
-	timer.restart();
-	work_on(m, cliques);
-	//sdp1.matrix_completion(cliques);
+	//timer.restart();
+	//work_on(m, cliques);
+	////sdp1.matrix_completion(cliques);
 
-	std::cout << "clique decomposition took  " << timer.elapsed() << std::endl;
-	display_info(cliques);
-	return 0;
-	//sdp1.print("my_sdp.dat");
-	//SdpSolver solver(sdp1);
-	////solver.launch_mosek();
+	//std::cout << "clique decomposition took  " << timer.elapsed() << std::endl;
+	//display_info(cliques);
+	//return 0;
+	////sdp1.print("my_sdp.dat");
+	////SdpSolver solver(sdp1);
+	//////solver.launch_mosek();
 
-	//solver.launch_xpress();
+	////solver.launch_xpress();
 }
