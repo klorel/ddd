@@ -76,6 +76,15 @@ int main(int argc, char**argv) {
 	ComplexPolynomial term3 = (1 + x(0)+x(1));
 	p.minimize() = term1*term1 + term2*term2 - 2 * term3*term3;
 	std::cout << p << std::endl;
+
+	ComplexMonomialPtr2Int monomials;
+	p.get_all_monomial(monomials);
+	std::cout << "Number of monomials " << monomials.rbegin()->second+1 << std::endl;
+	int max_degree(0);
+	for (auto const & kvp : monomials) {
+		max_degree = std::max(max_degree, kvp.first->degree());
+	}
+	std::cout << "Maximum degree is " << max_degree << std::endl;
 	return 0;
 	//MatPowerData matPowerData;
 	//Timer timer;

@@ -77,10 +77,10 @@ void MatPowerData::generate_opf(Problem & output)const {
 	int const nGenCost((int)gencost.size());
 	
 	IndexedPool	const & v = output.newvarpool("V", nBus);
-	IndexedPool	const & balance = output.newctrpool("balance", nBus);
 
-	IndexedPool	const & vmax = output.newctrpool("vmin", nBus);
-	IndexedPool	const & vmin = output.newctrpool("vmax", nBus);
+	IndexedPool	const & balance = output.newctrpool("balance", nBus);
+	IndexedPool	const & vmin = output.newctrpool("vmin", nBus);
+	IndexedPool	const & vmax = output.newctrpool("vmax", nBus);
 
 	for (int i(0); i < nBus; ++i) {
 		NumberVector const & data(*bus[i]);
