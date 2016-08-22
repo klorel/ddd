@@ -20,6 +20,7 @@ public:
 	ComplexPolynomial(Number value);
 	ComplexPolynomial(Number real, Number imag);
 	ComplexPolynomial(ComplexNumber const & value);
+	ComplexPolynomial(ComplexMonomialPtr value);
 
 	static ComplexPolynomial i();
 	static ComplexPolynomial Build(PosInt id);
@@ -47,9 +48,8 @@ public:
 
 	void insert(ComplexPolynomial const & rhs, ComplexNumber factor);
 	std::ostream & print(std::ostream & stream) const;
-	std::ostream & print(std::ostream & stream, Problem const & rhs) const;
+	std::ostream & print(std::ostream & stream, PolynomialOptimizationProblem const & rhs) const;
 
-	
 private:
 	ComplexTermsPtr _terms;
 };

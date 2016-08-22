@@ -1,7 +1,7 @@
 #include "common.h"
 
-#include "Problem.h"
 #include "Constraint.h"
+#include "PolynomialOptimizationProblem.h"
 
 
 Index2 get_index(int i, int j){

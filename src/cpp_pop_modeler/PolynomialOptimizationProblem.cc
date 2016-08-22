@@ -1,8 +1,8 @@
-#include "Problem.h"
 #include "Constraint.h"
+#include "PolynomialOptimizationProblem.h"
 
 
-void Problem::get_all_monomial(ComplexMonomialPtr2Int & output)const {
+void PolynomialOptimizationProblem::get_all_monomial(ComplexMonomialPtr2Int & output)const {
 	output.clear();
 	minimize().get_all_monomial(output);
 	for (auto const & ctr : _constraints) {
@@ -15,38 +15,38 @@ void Problem::get_all_monomial(ComplexMonomialPtr2Int & output)const {
 	}
 }
 
-Problem::Problem()
+PolynomialOptimizationProblem::PolynomialOptimizationProblem()
 {
 }
 
 
-Problem::~Problem()
+PolynomialOptimizationProblem::~PolynomialOptimizationProblem()
 {
 }
 
-std::string  & Problem::name(int key) {
+std::string  & PolynomialOptimizationProblem::name(int key) {
 	return *_varnames[key];
 }
 
-std::string const & Problem::name(int key)const {
+std::string const & PolynomialOptimizationProblem::name(int key)const {
 	return *_varnames[key];
 }
-std::string & Problem::ctrname(int key) {
+std::string & PolynomialOptimizationProblem::ctrname(int key) {
 	return *_ctrnames[key];
 }
-std::string const &Problem::ctrname(int key)const {
+std::string const &PolynomialOptimizationProblem::ctrname(int key)const {
 	return *_ctrnames[key];
 }
 
-Constraint& Problem::ctr(int key) {
+Constraint& PolynomialOptimizationProblem::ctr(int key) {
 	return _constraints[key];
 }
 
-Constraint const & Problem::ctr(int key) const {
+Constraint const & PolynomialOptimizationProblem::ctr(int key) const {
 	return _constraints[key];
 }
 
-ComplexPolynomial Problem::variable(int i)const {
+ComplexPolynomial PolynomialOptimizationProblem::variable(int i)const {
 	return ComplexPolynomial::Build(i);
 }
 //
@@ -59,13 +59,13 @@ ComplexPolynomial Problem::variable(int i)const {
 //ComplexPolynomial Problem::variable(std::string const &name, IntPair const & i)const {
 //	return variable(name, i.first, i.second);
 //}
-Constraint & Problem::ctr(std::string const &name, int i1) {
+Constraint & PolynomialOptimizationProblem::ctr(std::string const &name, int i1) {
 	return _constraints[idctr(name, i1)];
 }
-Constraint & Problem::ctr(std::string const &name, int i1, int i2) {
+Constraint & PolynomialOptimizationProblem::ctr(std::string const &name, int i1, int i2) {
 	return _constraints[idctr(name, i1, i2)];
 }
-Constraint & Problem::ctr(std::string const &name, IntPair const & i) {
+Constraint & PolynomialOptimizationProblem::ctr(std::string const &name, IntPair const & i) {
 	return ctr(name, i.first, i.second);
 }
 
@@ -95,7 +95,7 @@ Constraint & Problem::ctr(std::string const &name, IntPair const & i) {
 //}
 
 
-IndexedPool const & Problem::varpool(std::string const & name)const {
+IndexedPool const & PolynomialOptimizationProblem::varpool(std::string const & name)const {
 	Str2Pool::const_iterator it(_varpools.find(name));
 	if (it == _varpools.end()) {
 		throw std::invalid_argument("var pool name was not found");
@@ -105,7 +105,7 @@ IndexedPool const & Problem::varpool(std::string const & name)const {
 	}
 }
 
-IndexedPool const & Problem::ctrpool(std::string const &name)const {
+IndexedPool const & PolynomialOptimizationProblem::ctrpool(std::string const &name)const {
 	Str2Pool::const_iterator it(_ctrpools.find(name));
 	if (it == _ctrpools.end()) {
 		throw std::invalid_argument("ctr pool name was not found");
@@ -115,31 +115,31 @@ IndexedPool const & Problem::ctrpool(std::string const &name)const {
 	}
 }
 
-IndexedPool const & Problem::newvarpool(std::string const & poolname, size_t ids) {
+IndexedPool const & PolynomialOptimizationProblem::newvarpool(std::string const & poolname, size_t ids) {
 	return *newpool(_varpools, _varnames, poolname, ids);
 }
 
-IndexedPool const & Problem::newvarpool(std::string const & poolname, IntPairSet const & ids) {
+IndexedPool const & PolynomialOptimizationProblem::newvarpool(std::string const & poolname, IntPairSet const & ids) {
 	return *newpool(_varpools, _varnames, poolname, ids);
 }
 
-IndexedPool const & Problem::newvarpool(std::string const & poolname, IntSet const & ids) {
+IndexedPool const & PolynomialOptimizationProblem::newvarpool(std::string const & poolname, IntSet const & ids) {
 	return *newpool(_varpools, _varnames, poolname, ids);
 }
 
-IndexedPool const & Problem::newctrpool(std::string const & poolname, size_t ids) {
+IndexedPool const & PolynomialOptimizationProblem::newctrpool(std::string const & poolname, size_t ids) {
 	IndexedPool const & result = *newpool(_ctrpools, _ctrnames, poolname, ids);
 	_constraints.resize(_ctrnames.size());
 	return result;
 }
 
-IndexedPool const & Problem::newctrpool(std::string const & poolname, IntSet const & ids) {
+IndexedPool const & PolynomialOptimizationProblem::newctrpool(std::string const & poolname, IntSet const & ids) {
 	IndexedPool const & result = *newpool(_ctrpools, _ctrnames, poolname, ids);
 	_constraints.resize(_ctrnames.size());
 	return result;
 }
 
-IndexedPool const & Problem::newctrpool(std::string const & poolname, IntPairSet const & ids) {
+IndexedPool const & PolynomialOptimizationProblem::newctrpool(std::string const & poolname, IntPairSet const & ids) {
 	IndexedPool const & result = *newpool(_ctrpools, _ctrnames, poolname, ids);
 	_constraints.resize(_ctrnames.size());
 	return result;
@@ -172,19 +172,19 @@ IndexedPoolPtr newpool(Str2Pool & pool, StrPtrVector & names, std::string const 
 //	variablePool(poolname + "_imag", size);
 //}
 
-int Problem::idvar(std::string const & name, int i1)const {
+int PolynomialOptimizationProblem::idvar(std::string const & name, int i1)const {
 	return id(_varpools, name, i1);
 }
 
-int Problem::idvar(std::string const & name, int i1, int i2)const {
+int PolynomialOptimizationProblem::idvar(std::string const & name, int i1, int i2)const {
 	return id(_varpools, name, i1, i2);
 }
 
-int Problem::idctr(std::string const & name, int i1)const {
+int PolynomialOptimizationProblem::idctr(std::string const & name, int i1)const {
 	return id(_ctrpools, name, i1);
 }
 
-int Problem::idctr(std::string const & name, int i1, int i2)const {
+int PolynomialOptimizationProblem::idctr(std::string const & name, int i1, int i2)const {
 	return id(_ctrpools, name, i1, i2);
 }
 
@@ -209,28 +209,28 @@ int id(Str2Pool const & pool, std::string const & name, int i1, int i2) {
 	}
 }
 
-void Problem::add(Constraint const &rhs) {
+void PolynomialOptimizationProblem::add(Constraint const &rhs) {
 	_constraints.push_back(rhs);
 	_ctrnames.push_back(StrPtr(new std::string(Str("ctr_", nctrs()))));
 }
 
 
-ComplexPolynomial & Problem::minimize() {
+ComplexPolynomial & PolynomialOptimizationProblem::minimize() {
 	return _minimize;
 }
 
-ComplexPolynomial const & Problem::minimize()const {
+ComplexPolynomial const & PolynomialOptimizationProblem::minimize()const {
 	return _minimize;
 }
 
-int Problem::nvars()const {
+int PolynomialOptimizationProblem::nvars()const {
 	return static_cast<int>(_varnames.size());
 }
 
-int Problem::nctrs()const {
+int PolynomialOptimizationProblem::nctrs()const {
 	return static_cast<int>(_ctrnames.size());
 }
-void Problem::clear() {
+void PolynomialOptimizationProblem::clear() {
 	_ctrpools.clear();
 	_ctrnames.clear();
 	_constraints.clear();
@@ -240,16 +240,16 @@ void Problem::clear() {
 	_minimize = 0;
 }
 
-std::ostream & operator<<(std::ostream & lhs, Problem const & rhs) {
+std::ostream & operator<<(std::ostream & lhs, PolynomialOptimizationProblem const & rhs) {
 	rhs.print(lhs);
 	return lhs;
 }
 
-void operator<<(Problem & problem, ComplexPolynomial const & rhs) {
+void operator<<(PolynomialOptimizationProblem & problem, ComplexPolynomial const & rhs) {
 	problem.minimize() = rhs;
 }
 
-void Problem::print(std::ostream &stream)const {
+void PolynomialOptimizationProblem::print(std::ostream &stream)const {
 	stream << "minimize ";
 	minimize().print(stream, *this);
 	//minimize().print(stream);

@@ -17,7 +17,7 @@ public:
 	ComplexPolynomial & f();
 
 	void print(std::ostream &)const;
-	void print(std::ostream &, Problem const & rhs)const;
+	void print(std::ostream &, PolynomialOptimizationProblem const & rhs)const;
 private:
 	ComplexPolynomial _f;
 	ComplexNumberPtr _lb;

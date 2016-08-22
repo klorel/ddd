@@ -24,7 +24,7 @@ void MatPowerData::read_file(std::string const & file_name) {
 		}
 		else if (line.find("mpc.bus") != std::string::npos) {
 			std::getline(file, line);
-			while (line[0] != ']'){				
+			while (line[0] != ']') {
 				NumberVectorPtr ptr = newData<Bus>(line);
 				bus.push_back(ptr);
 				max_bus = std::max(max_bus, (int)(*ptr)[0]);
@@ -62,20 +62,20 @@ void MatPowerData::read_file(std::string const & file_name) {
 			if (!(buffer >> baseMVA))std::cout << "unable to read baseMVA" << std::endl;
 		}
 	}
-	std::cout << "max_bus is "<<max_bus << std::endl;
+	std::cout << "max_bus is " << max_bus << std::endl;
 	bus2index.assign(max_bus + 1, -1);
 	for (int i(0); i < bus.size(); ++i) {
 		bus2index[(int)(*bus[i])[0]] = i;
 	}
 }
 
-void MatPowerData::generate_opf(Problem & output)const {
+void MatPowerData::generate_opf(PolynomialOptimizationProblem & output)const {
 	output.clear();
 	int const nBus((int)bus.size());
 	int const nBranch((int)branch.size());
 	int const nGen((int)gen.size());
 	int const nGenCost((int)gencost.size());
-	
+
 	IndexedPool	const & v = output.newvarpool("V", nBus);
 
 	IndexedPool	const & balance = output.newctrpool("balance", nBus);
@@ -96,13 +96,13 @@ void MatPowerData::generate_opf(Problem & output)const {
 	}
 	for (int i(0); i < nBranch; ++i) {
 		NumberVector const & data(*branch[i]);
-		int const or(bus2index[(int)data[Branch::branch_fbus]]);
+		int const or (bus2index[(int)data[Branch::branch_fbus]]);
 		int const ex(bus2index[(int)data[Branch::branch_tbus]]);
 
 		ComplexPolynomial current_or = baseMVA*(get_11(data)*v(or ) + get_12(data)*v(ex));
 		ComplexPolynomial current_ex = baseMVA*(get_21(data)*v(or ) + get_22(data)*v(ex));
-		output.ctr(balance.id(or )).f() += current_or.conjugate() * v(or);
-		output.ctr(balance.id(ex )).f() += current_ex.conjugate() * v(ex);
+		output.ctr(balance.id(or )).f() += current_or.conjugate() * v(or );
+		output.ctr(balance.id(ex)).f() += current_ex.conjugate() * v(ex);
 		//if(or==3)
 		//std::exit(0);
 	}
@@ -119,7 +119,7 @@ void MatPowerData::generate_opf(Problem & output)const {
 		}
 		int const bus(bus2index[(int)(*gen[i])[Gen::gen_bus]]);
 		for (int j(0); j < data.n; ++j) {
-			if (data.c[j] != 0 && j>0) {
+			if (data.c[j] != 0 && j > 0) {
 				ComplexPolynomial term(1);
 				for (int k(0); k < data.n - 1 - j; ++k) {
 					term *= output.ctr(balance.id(bus)).f();

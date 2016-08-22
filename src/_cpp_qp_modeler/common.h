@@ -57,7 +57,7 @@ bool isZero(ComplexNumber value);
 std::string format(Number value);
 std::string format(ComplexNumber const & value);
 
-class Problem;
+class PolynomialOptimizationProblem;
 class FunctionReal;
 class FunctionComplex;
 class Constraint;
@@ -68,7 +68,7 @@ std::ostream & printAlpha(std::ostream & stream, IntVector const & rhs);
 
 std::ostream & operator<<(std::ostream &, FunctionReal const &);
 std::ostream & operator<<(std::ostream &, FunctionComplex const &);
-std::ostream & operator<<(std::ostream &, Problem const &);
+std::ostream & operator<<(std::ostream &, PolynomialOptimizationProblem const &);
 std::ostream & operator<<(std::ostream &, Constraint const &);
 
 typedef unsigned int PosInt;

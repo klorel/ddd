@@ -63,7 +63,7 @@ RealPolynomial RealPolynomial::clone()const {
 	return result;
 }
 
-std::ostream &  RealPolynomial::print(std::ostream & stream, Problem const & problem)const {
+std::ostream &  RealPolynomial::print(std::ostream & stream, PolynomialOptimizationProblem const & problem)const {
 	for (auto const & term : terms()) {
 		stream << format(term.second);
 		for (auto const & alpha : *term.first.second) {

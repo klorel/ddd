@@ -2,7 +2,7 @@
 
 #include "common.h"
 #include "ComplexPolynomial.h"
-#include "Problem.h"
+#include "PolynomialOptimizationProblem.h"
 
 class Gencost;
 typedef std::shared_ptr<Gencost> GencostPtr;
@@ -76,7 +76,7 @@ public:
 	ComplexPolynomial get_22(NumberVector const &)const;
 public:
 	void read_file(std::string const & file_name);
-	void generate_opf(Problem & output)const;
+	void generate_opf(PolynomialOptimizationProblem & output)const;
 public:
 	NumberVectorPtrVector bus;
 	NumberVectorPtrVector gen;

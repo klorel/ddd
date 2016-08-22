@@ -60,7 +60,7 @@ std::ostream & operator<<(std::ostream & stream, FunctionComplex const & rhs) {
 }
 
 
-std::ostream & operator<<(std::ostream & stream, Problem const & rhs) {
+std::ostream & operator<<(std::ostream & stream, PolynomialOptimizationProblem const & rhs) {
 	rhs.print(stream);
 	return stream;
 }

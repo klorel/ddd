@@ -3,7 +3,7 @@
 
 #include "common.h"
 
-class Problem;
+class PolynomialOptimizationProblem;
 
 class SdpProblem {
 public:
@@ -28,7 +28,7 @@ public:
 
 	void clear();
 
-	void sdprelaxation(Problem const &);
+	void sdprelaxation(PolynomialOptimizationProblem const &);
 	void sparsesdp(SdpProblem &);
 
 	void addSparsityPattern(SparsityPattern & result)const;

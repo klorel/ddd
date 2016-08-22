@@ -17,7 +17,7 @@ public:
 	FunctionReal & f();
 
 	void print(std::ostream &)const;
-	void print(std::ostream &, Problem const &)const;
+	void print(std::ostream &, PolynomialOptimizationProblem const &)const;
 
 	Sense sense()const;
 private:

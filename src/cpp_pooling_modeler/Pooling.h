@@ -26,9 +26,9 @@ public:
 		void build(Pooling const &);
 	};
 public:
-	void pqFormulation(Problem & result)const;
-	void qFormulation(Problem & result)const;
-	void pFormulation(Problem & result)const;
+	void pqFormulation(PolynomialOptimizationProblem & result)const;
+	void qFormulation(PolynomialOptimizationProblem & result)const;
+	void pFormulation(PolynomialOptimizationProblem & result)const;
 public:
 	Pooling(size_t n = 0, size_t k = 0);
 	virtual ~Pooling();

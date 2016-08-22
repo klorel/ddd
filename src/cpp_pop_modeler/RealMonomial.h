@@ -13,7 +13,7 @@ public:
 	PosInt &degree();
 
 	std::ostream & print(std::ostream & stream, bool const & isH)const;
-	std::ostream & print(std::ostream & stream, Problem const & rhs, bool const & isH)const;
+	std::ostream & print(std::ostream & stream, PolynomialOptimizationProblem const & rhs, bool const & isH)const;
 	
 private:
 	PosInt2PosInt _alpha;

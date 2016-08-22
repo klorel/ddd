@@ -1,5 +1,6 @@
 #include "Constraint.h"
-#include "Problem.h"
+
+#include "PolynomialOptimizationProblem.h"
 
 Constraint::Constraint() :_lb(new ComplexNumber(negInfinity())), _ub(new ComplexNumber(posInfinity())), _f()
 {
@@ -32,7 +33,7 @@ ComplexPolynomial & Constraint::f() {
 void Constraint::print(std::ostream & stream)const {
 	stream << lb() << " <= " << f() << " <= " << ub();
 }
-void Constraint::print(std::ostream & stream, Problem const & rhs)const {
+void Constraint::print(std::ostream & stream, PolynomialOptimizationProblem const & rhs)const {
 	if (lb() == ub()) {
 		stream << lb() << "  = ";
 		f().print(stream, rhs);

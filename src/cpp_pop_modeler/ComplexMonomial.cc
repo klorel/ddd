@@ -1,5 +1,6 @@
 #include "ComplexMonomial.h"
-#include "Problem.h"
+
+#include "PolynomialOptimizationProblem.h"
 
 ComplexMonomialPtr  ComplexMonomial::ZeroPtr = ComplexMonomialPtr(new ComplexMonomial);
 
@@ -45,7 +46,7 @@ std::ostream & ComplexMonomial::print(std::ostream & stream)const {
 
 	return stream;
 }
-std::ostream & ComplexMonomial::print(std::ostream & stream, Problem const & rhs)const {
+std::ostream & ComplexMonomial::print(std::ostream & stream, PolynomialOptimizationProblem const & rhs)const {
 	zH().print(stream, rhs, true);
 	z().print(stream, rhs, false);
 

@@ -82,17 +82,21 @@ ComplexPolynomial ComplexPolynomial::conjugate()const {
 	return result;
 }
 
-ComplexPolynomial::ComplexPolynomial() :_terms(new ComplexTerms) {
+ComplexPolynomial::ComplexPolynomial() :_terms(new ComplexTerms){
 
 }
 ComplexPolynomial::ComplexPolynomial(Number value) : _terms(new ComplexTerms) {
 	terms()[ComplexMonomial::ZeroPtr] = value;
 }
-ComplexPolynomial::ComplexPolynomial(Number real, Number imag) : _terms(new ComplexTerms) {
+ComplexPolynomial::ComplexPolynomial(Number real, Number imag) : _terms(new ComplexTerms){
 	terms()[ComplexMonomial::ZeroPtr] = ComplexNumber(real, imag);
 }
 ComplexPolynomial::ComplexPolynomial(ComplexNumber const & value) : _terms(new ComplexTerms) {
 	terms()[ComplexMonomial::ZeroPtr] = value;
+}
+
+ComplexPolynomial::ComplexPolynomial(ComplexMonomialPtr ptr) : _terms(new ComplexTerms) {
+	terms()[ptr] = 1;
 }
 ComplexPolynomial ComplexPolynomial::i() {
 	ComplexPolynomial result(0, 1);
@@ -159,8 +163,22 @@ ComplexNumber ComplexPolynomial::constant()const {
 }
 
 void ComplexPolynomial::insert(ComplexPolynomial const & rhs, ComplexNumber factor) {
-	for (auto const & term : rhs.terms()) {
-		terms()[term.first] += factor*term.second;
+	if (std::abs(factor) != 0) {		
+		for (auto const & term : rhs.terms()) {
+			auto result = terms().insert({ term.first, factor*term.second });
+			if (!result.second) {
+				result.first->second += factor*term.second;
+				if (std::abs(result.first->second) > 0) {
+				}
+				else {
+					terms().erase(result.first);
+				}
+			}
+			else {
+
+			}
+			//terms()[term.first] += factor*term.second;
+		}
 	}
 }
 std::ostream & ComplexPolynomial::print(std::ostream & stream) const {
@@ -170,7 +188,7 @@ std::ostream & ComplexPolynomial::print(std::ostream & stream) const {
 	}
 	return stream;
 }
-std::ostream & ComplexPolynomial::print(std::ostream & stream, Problem const & rhs) const {
+std::ostream & ComplexPolynomial::print(std::ostream & stream, PolynomialOptimizationProblem const & rhs) const {
 	for (auto const & term : terms()) {
 		stream << format(term.second);
 		term.first->print(stream, rhs);

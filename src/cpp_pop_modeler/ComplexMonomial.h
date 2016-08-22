@@ -18,7 +18,7 @@ public:
 	bool zero() const;
 
 	std::ostream & print(std::ostream & stream)const;
-	std::ostream & print(std::ostream & stream, Problem const &)const;
+	std::ostream & print(std::ostream & stream, PolynomialOptimizationProblem const &)const;
 	ComplexMonomialPtr conjugate()const;
 	
 	int degree()const;

@@ -53,7 +53,7 @@ bool FunctionComplex::isLinear()const {
 	return real().isLinear() && imag().isLinear();
 }
 
-void FunctionComplex::print(std::ostream & stream, Problem const & problem)const {
+void FunctionComplex::print(std::ostream & stream, PolynomialOptimizationProblem const & problem)const {
 	if (!isNull()) {
 		if (!real().isNull()) {
 			real().print(stream, problem);

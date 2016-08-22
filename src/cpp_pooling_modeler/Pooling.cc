@@ -6,7 +6,7 @@
 */
 
 #include "Pooling.h"
-#include "Problem.h"
+#include "PolynomialOptimizationProblem.h"
 
 Pooling::Pooling(size_t n, size_t k) {
 	allocate(n, k);
@@ -226,7 +226,7 @@ IntSet const & Pooling::nMoins(int i) const {
 }
 
 
-void Pooling::pqFormulation(Problem & result)const{
+void Pooling::pqFormulation(PolynomialOptimizationProblem & result)const{
 	Structure structure;
 	get(structure);
 
@@ -349,7 +349,7 @@ void Pooling::pqFormulation(Problem & result)const{
 
 
 
-void Pooling::pFormulation(Problem & result)const{
+void Pooling::pFormulation(PolynomialOptimizationProblem & result)const{
 	Structure structure;
 	get(structure);
 	
@@ -476,6 +476,6 @@ void Pooling::pFormulation(Problem & result)const{
 
 }
 
-void Pooling::qFormulation(Problem & result)const{
+void Pooling::qFormulation(PolynomialOptimizationProblem & result)const{
 
 }

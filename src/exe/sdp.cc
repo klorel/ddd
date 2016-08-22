@@ -6,6 +6,8 @@
 #include "Timer.h"
 #include "MatPowerData.h"
 
+#include "MomentGenerator.h"
+
 void read_graph(std::string const & file_name, SparseMatrix & output, bool complete_graph) {
 	Timer timer;
 	std::ifstream file(file_name.c_str());
@@ -69,23 +71,33 @@ void read_graph(std::string const & file_name, SparseMatrix & output, bool compl
 }
 
 int main(int argc, char**argv) {
-	Problem p;
-	IndexedPool const & x = p.newvarpool("x", 2);
-	ComplexPolynomial term1 = (1 + x(0)*x(0));
-	ComplexPolynomial term2 = (1 + x(1)*x(1));
-	ComplexPolynomial term3 = (1 + x(0)+x(1));
-	p.minimize() = term1*term1 + term2*term2 - 2 * term3*term3;
-	std::cout << p << std::endl;
+	MomentGenerator momentGenerator(3, 4);
 
-	ComplexMonomialPtr2Int monomials;
-	p.get_all_monomial(monomials);
-	std::cout << "Number of monomials " << monomials.rbegin()->second+1 << std::endl;
-	int max_degree(0);
-	for (auto const & kvp : monomials) {
-		max_degree = std::max(max_degree, kvp.first->degree());
-	}
-	std::cout << "Maximum degree is " << max_degree << std::endl;
+	momentGenerator.build();
 	return 0;
+
+
+	//PolynomialOptimizationProblem p;
+	//IndexedPool const & x = p.newvarpool("x", 2);
+	//ComplexPolynomial term1 = (1 + x(0)*x(0));
+	//ComplexPolynomial term2 = (1 + x(1)*x(1));
+	//ComplexPolynomial term3 = (1 + x(0)+x(1));
+	//p.minimize() = term1*term1 + term2*term2 - 2 * term3*term3;
+	//std::cout << p << std::endl;
+
+	//ComplexMonomialPtr2Int monomials;
+	//p.get_all_monomial(monomials);
+	//std::cout << "Number of monomials " << monomials.rbegin()->second+1 << std::endl;
+	//int max_degree(0);
+	//for (auto const & kvp : monomials) {
+	//	max_degree = std::max(max_degree, kvp.first->degree());
+	//}
+	//std::cout << "Maximum degree is " << max_degree << std::endl;
+	//return 0;
+
+
+
+
 	//MatPowerData matPowerData;
 	//Timer timer;
 	//matPowerData.read_file(argv[1]);

@@ -3,7 +3,7 @@
 #include "common.h"
 
 class FunctionReal{
-	friend class Problem;
+	friend class PolynomialOptimizationProblem;
 	friend class FunctionComplex;
 	friend FunctionReal operator+(FunctionReal const &);
 	friend FunctionReal operator-(FunctionReal const &);
@@ -35,7 +35,7 @@ public:
 
 	void clear();
 
-	void print(std::ostream & stream, Problem const &)const;
+	void print(std::ostream & stream, PolynomialOptimizationProblem const &)const;
 	void print(std::ostream & stream)const;
 	
 	void addSupport(IntSet &)const;

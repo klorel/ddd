@@ -181,7 +181,7 @@ void FunctionReal::add(Index2 const & key, Number value, Number factor) {
 	}
 }
 
-void FunctionReal::print(std::ostream & stream, Problem const & problem)const {
+void FunctionReal::print(std::ostream & stream, PolynomialOptimizationProblem const & problem)const {
 	if (constant() != 0) {
 		stream << constant();
 	}

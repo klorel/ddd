@@ -37,7 +37,7 @@ public:
 		SUM,DIFF,PROD
 	};
 public:
-	friend class Problem;
+	friend class PolynomialOptimizationProblem;
 	friend class FunctionComplex;
 	friend RealPolynomial operator+(RealPolynomial const &);
 	friend RealPolynomial operator-(RealPolynomial const &);
@@ -56,7 +56,7 @@ public:
 public:
 	void clear();
 
-	std::ostream & print(std::ostream & stream, Problem const &)const;
+	std::ostream & print(std::ostream & stream, PolynomialOptimizationProblem const &)const;
 	std::ostream & print(std::ostream & stream)const;
 public:
 	RealPolynomialTerms & terms();

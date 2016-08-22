@@ -5,10 +5,11 @@
 class SdpProblem;
 void get_sdp_1(SdpProblem & sdp);
 
+typedef std::array<int, 4> IntArray4;
+typedef std::map<IntArray4, Number> Matrix;
+
 class SdpProblem {
 public:
-	typedef std::array<int, 4> Coef;
-	typedef std::map<Coef, Number> Matrix;
 	class Block
 	{
 	public:

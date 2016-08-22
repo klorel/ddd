@@ -4,13 +4,13 @@
 #include "Constraint.h"
 #include "IndexedPool.h"
 
-class Problem
+class PolynomialOptimizationProblem
 {
 public:
 	void get_all_monomial(ComplexMonomialPtr2Int & )const;
 public:
-	Problem();
-	~Problem();
+	PolynomialOptimizationProblem();
+	~PolynomialOptimizationProblem();
 public:
 	std::string & name(int);
 	std::string const & name(int)const;

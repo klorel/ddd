@@ -29,7 +29,7 @@ public:
 	FunctionReal const & imag()const;
 	FunctionReal & imag();
 
-	void print(std::ostream & stream, Problem const &)const;
+	void print(std::ostream & stream, PolynomialOptimizationProblem const &)const;
 
 	void print(std::ostream & stream)const;
 

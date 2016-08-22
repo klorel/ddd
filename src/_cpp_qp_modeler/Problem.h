@@ -6,11 +6,11 @@
 #include "Constraint.h"
 #include "VariablePool.h"
 
-class Problem
+class PolynomialOptimizationProblem
 {
 public:
-	Problem();
-	~Problem();
+	PolynomialOptimizationProblem();
+	~PolynomialOptimizationProblem();
 public:
 	std::string & name(int);
 	std::string const & name(int)const;

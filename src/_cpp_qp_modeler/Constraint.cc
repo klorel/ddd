@@ -32,7 +32,7 @@ FunctionReal & Constraint::f(){
 void Constraint::print(std::ostream & stream)const {
 	stream << lb() << " <= " << f() << " <= " << ub();
 }
-void Constraint::print(std::ostream & stream, Problem const & problem)const {
+void Constraint::print(std::ostream & stream, PolynomialOptimizationProblem const & problem)const {
 	if (lb() == ub())
 		stream << lb() << " = ";
 	else if (lb() > negInfinity())

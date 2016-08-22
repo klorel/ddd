@@ -60,7 +60,7 @@ bool isZero(ComplexNumber value);
 std::string format(Number value);
 std::string format(ComplexNumber const & value);
 
-class Problem;
+class PolynomialOptimizationProblem;
 class FunctionReal;
 class FunctionComplex;
 class Constraint;
@@ -139,7 +139,7 @@ typedef std::map<std::string, IndexedPoolPtr> Str2Pool;
 
 // operator overloading
 std::ostream & printAlpha(std::ostream & stream, IntVector const & rhs);
-std::ostream & operator<<(std::ostream &, Problem const &);
+std::ostream & operator<<(std::ostream &, PolynomialOptimizationProblem const &);
 std::ostream & operator<<(std::ostream &, Constraint const &);
 
 std::ostream & operator<<(std::ostream & stream, RealMonomial const & rhs);
@@ -164,7 +164,7 @@ ComplexPolynomial operator-(ComplexPolynomial const & lhs, ComplexPolynomial con
 ComplexPolynomial operator*(ComplexPolynomial const & lhs, ComplexPolynomial const & rhs);
 ComplexPolynomial operator/(ComplexPolynomial const & lhs, ComplexPolynomial const & rhs);
 
-void operator<<(Problem & problem, ComplexPolynomial const & rhs);
+void operator<<(PolynomialOptimizationProblem & problem, ComplexPolynomial const & rhs);
 
 Constraint operator<=(ComplexPolynomial const & lhs, ComplexNumber const & rhs);
 Constraint operator==(ComplexPolynomial const & lhs, ComplexNumber const & rhs);

@@ -50,7 +50,7 @@ void SdpProblem::clear() {
 	_blocks.clear();
 
 }
-void SdpProblem::sdprelaxation(Problem const & problem) {
+void SdpProblem::sdprelaxation(PolynomialOptimizationProblem const & problem) {
 	clear();
 	int const ini = newBlock(problem.nvars() + 1);
 	{

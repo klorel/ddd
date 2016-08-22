@@ -1,7 +1,7 @@
 
 #include "common.h"
 #include "RegisteredInstance.h"
-#include "Problem.h"
+#include "PolynomialOptimizationProblem.h"
 
 int main(int argc, char**argv) {
 	AvailableInstances id(AvailableInstances::SIZE);
@@ -22,7 +22,7 @@ int main(int argc, char**argv) {
 		return 0;
 	}
 	RegisteredInstance instance(id);
-	Problem problem;
+	PolynomialOptimizationProblem problem;
 	if (useP)
 		instance.pFormulation(problem);
 	else

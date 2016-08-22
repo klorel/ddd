@@ -1,5 +1,6 @@
 #include "RealMonomial.h"
-#include "Problem.h"
+
+#include "PolynomialOptimizationProblem.h"
 
 PosInt2PosInt & RealMonomial::alpha() {
 	return _alpha;
@@ -18,7 +19,7 @@ PosInt & RealMonomial::degree() {
 	return _degree;
 }
 
-std::ostream & RealMonomial::print(std::ostream & stream, Problem const & rhs,  bool const & isH)const {
+std::ostream & RealMonomial::print(std::ostream & stream, PolynomialOptimizationProblem const & rhs,  bool const & isH)const {
 	for (auto const & alpha : alpha()) {
 		stream << rhs.name(alpha.first) << (isH ? "H" : "");
 		if (alpha.second > 1)
