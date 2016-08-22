@@ -38,13 +38,18 @@ ComplexPolynomial operator-(ComplexPolynomial const & lhs, ComplexPolynomial con
 }
 ComplexPolynomial operator*(ComplexPolynomial const & lhs, ComplexPolynomial const & rhs) {
 	ComplexPolynomial result;
+	//std::cout << "lhs = " << lhs << std::endl;
+	//std::cout << "rhs = " << rhs << std::endl;
 	for (auto const & lhs_term : lhs.terms()) {
 		for (auto const & rhs_term : rhs.terms()) {
+
 			ComplexMonomial const & lhs_monomial(*lhs_term.first);
 			ComplexMonomial const & rhs_monomial(*rhs_term.first);
 			// z alpha zH alphaH z beta zH betaH = z alpha+beta zH alphaH+betaH
 			// can be largely optimize for dense 
-			result.terms()[lhs_monomial + rhs_monomial] = lhs_term.second*rhs_term.second;
+			ComplexMonomialPtr key(lhs_monomial + rhs_monomial);
+			//std::cout << lhs_monomial <<" * "<< rhs_monomial <<" = "<<*key << std::endl;
+			result.terms()[lhs_monomial + rhs_monomial] += lhs_term.second*rhs_term.second;
 		}
 	}
 
@@ -182,16 +187,37 @@ void ComplexPolynomial::insert(ComplexPolynomial const & rhs, ComplexNumber fact
 	}
 }
 std::ostream & ComplexPolynomial::print(std::ostream & stream) const {
+	//for (auto const & term : terms()) {
+	//	stream << format(term.second);
+	//	stream << term.first;
+	//}
 	for (auto const & term : terms()) {
-		stream << format(term.second);
-		stream << term.first;
+		if (term.first->degree() > 0) {
+			stream << format(term.second);
+			stream << term.first;
+		}
+		else if (term.second.imag() == 0)
+			stream << term.second.real();
+		else  if (term.second.real() == 0)
+			stream << term.second.imag();
+		else
+			stream << term.second;
 	}
 	return stream;
 }
 std::ostream & ComplexPolynomial::print(std::ostream & stream, PolynomialOptimizationProblem const & rhs) const {
 	for (auto const & term : terms()) {
-		stream << format(term.second);
-		term.first->print(stream, rhs);
+		if (term.first->degree() > 0) {
+			stream << format(term.second);
+			term.first->print(stream, rhs);
+		}
+		else if (term.second.imag() == 0)
+			stream << term.second.real();
+		else  if (term.second.real() == 0)
+			stream << term.second.imag();
+		else
+			stream << term.second;
+
 	}
 	return stream;
 }

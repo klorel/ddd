@@ -5,63 +5,60 @@
 ComplexMonomialPtr  ComplexMonomial::ZeroPtr = ComplexMonomialPtr(new ComplexMonomial);
 
 
-ComplexMonomialPtr ComplexMonomial::Build(PosInt id) {
+ComplexMonomialPtr ComplexMonomial::Build(int id) {
 	ComplexMonomialPtr result(new ComplexMonomial);
-	result->z().alpha()[id] = 1;
-	result->z().degree() = 1;
+	result->_id2degree[id] = 1;
+	result->_degreeToid[1].insert(id);
 	return result;
 }
-ComplexMonomialPtr ComplexMonomial::BuildH(PosInt id) {
+ComplexMonomialPtr ComplexMonomial::BuildH(int id) {
 	ComplexMonomialPtr result(new ComplexMonomial);
-	result->zH().alpha()[id] = 1;
-	result->zH().degree() = 1;
+	result->_id2degree[id] = -1;
+	result->_degreeToid[-1].insert(id);
 	return result;
 }
 
 int ComplexMonomial::degree()const {
-	return std::max(z().degree(), zH().degree());
-}
-
-RealMonomial & ComplexMonomial::zH() {
-	return *std::get<ZH>(_non_zero);
-}
-RealMonomial const & ComplexMonomial::zH()const {
-	return *std::get<ZH>(_non_zero);
-}
-
-RealMonomial & ComplexMonomial::z() {
-	return *std::get<Z>(_non_zero);
-}
-RealMonomial const & ComplexMonomial::z()const {
-	return *std::get<Z>(_non_zero);
+	return zero() ? 0 : std::max(std::abs(_degreeToid.begin()->first), std::abs(_degreeToid.rbegin()->first));
 }
 
 bool ComplexMonomial::zero() const {
-	return zH().degree() == 0 && z().degree() == 0;
+	return _degreeToid.empty();
 }
 
 std::ostream & ComplexMonomial::print(std::ostream & stream)const {
-	zH().print(stream, true);
-	z().print(stream, false);
-
+	if (!zero()) {
+		for (auto const & alpha : _id2degree) {
+			stream << "z" << "[" << alpha.first << "]" << (alpha.second < 0 ? "H" : "");
+			if (std::abs(alpha.second) > 1)
+				stream << "^" << std::abs(alpha.second);
+		}
+	}
+	else {
+		stream << "1";
+	}
 	return stream;
 }
 std::ostream & ComplexMonomial::print(std::ostream & stream, PolynomialOptimizationProblem const & rhs)const {
-	zH().print(stream, rhs, true);
-	z().print(stream, rhs, false);
-
+	for (auto const & alpha : _id2degree) {
+		stream << rhs.name(alpha.first) << (alpha.second < 0 ? "H" : "");
+		if (std::abs(alpha.second) > 1)
+			stream << "^" << std::abs(alpha.second);
+	}
 	return stream;
 }
 ComplexMonomialPtr ComplexMonomial::conjugate()const {
 	ComplexMonomialPtr result(new ComplexMonomial);
-	result->_non_zero = _non_zero;
-	std::swap(std::get<Z>(result->_non_zero), std::get<ZH>(result->_non_zero));
+	for (auto const & kvp : _id2degree) {
+		result->_id2degree[kvp.first] = -kvp.second;
+	}
+	for (Int2IntSet::const_reverse_iterator rit(_degreeToid.rbegin()); rit != _degreeToid.rend(); ++rit) {
+		result->_degreeToid[-rit->first] = rit->second;
+	}
 	return result;
 }
 
 ComplexMonomial::ComplexMonomial() {
-	std::get<ZH>(_non_zero) = RealMonomialPtr(new RealMonomial);
-	std::get<Z>(_non_zero) = RealMonomialPtr(new RealMonomial);
 }
 
 
@@ -78,7 +75,20 @@ ComplexMonomialPtr operator+(ComplexMonomial const & lhs, ComplexMonomial const 
 	// (alpha, alphaH) + (beta, betaH) = (alpha+beta, alphaH+betaH)
 	ComplexMonomialPtr ptr(new ComplexMonomial);
 	ComplexMonomial & result(*ptr);
-	std::get<ComplexMonomial::Z>(result._non_zero) = lhs.z() + rhs.z();
-	std::get<ComplexMonomial::ZH>(result._non_zero) = lhs.zH() + rhs.zH();
+	for (auto const & kvp : lhs._id2degree) {
+		result._id2degree[kvp.first] += kvp.second;
+	}
+	for (auto const & kvp : rhs._id2degree) {
+		result._id2degree[kvp.first] += kvp.second;
+	}
+	for (Int2Int::iterator it(result._id2degree.begin()); it != result._id2degree.end(); ) {
+		if (it->second == 0) {
+			result._id2degree.erase(it++);
+		}
+		else {
+			result._degreeToid[it->second].insert(it->first);
+			++it;
+		}
+	}
 	return ptr;
 }

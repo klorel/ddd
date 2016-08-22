@@ -84,8 +84,11 @@ typedef std::set<IntPair> IntPairSet;
 typedef std::set<IntTriple> IntTripleSet;
 
 
+
 typedef std::set<int> IntSet;
 typedef std::shared_ptr<IntSet> IntSetPtr;
+
+typedef std::map<int, IntSet> Int2IntSet;
 
 typedef std::vector<IntSet> SparsityPattern;
 
