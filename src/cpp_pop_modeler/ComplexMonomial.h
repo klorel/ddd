@@ -1,9 +1,10 @@
 #pragma once
-#include "RealMonomial.h"
+#include "common.h"
 
 class ComplexMonomial {
 public:
 	friend ComplexMonomialPtr operator+(ComplexMonomial const & lhs, ComplexMonomial const & rhs);
+	friend ComplexMonomialPtr operator+(ComplexMonomialPtr const & lhs, ComplexMonomialPtr const & rhs);
 
 public:
 
@@ -26,5 +27,5 @@ public:
 public:
 	// id of a variable -- > degree d, z ^ d if d>0 or z H ^ d if d<0
 	Int2Int _id2degree;
-	Int2IntSet _degreeToid;
+	int _degree;
 };

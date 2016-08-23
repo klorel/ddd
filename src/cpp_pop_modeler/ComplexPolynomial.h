@@ -32,8 +32,6 @@ public:
 	static ComplexPolynomial BuildH(PosInt id, ComplexNumber const & value);
 	static std::vector<ComplexPolynomial> BuildVector(PosInt size);
 	static std::vector<ComplexPolynomial> BuildVectorH(PosInt size);
-private:
-	ComplexTerms & terms();
 
 public:
 	void operator+=(ComplexPolynomial const & rhs);
@@ -42,16 +40,19 @@ public:
 	void operator/=(ComplexPolynomial const & rhs);
 
 	ComplexTerms const & terms() const;
-
+	int degree()const;
 	bool isConstant()const;
 	ComplexNumber constant()const;
 
 	void insert(ComplexPolynomial const & rhs, ComplexNumber factor);
+	void insert(ComplexMonomialPtr const & rhs, ComplexNumber, ComplexNumber factor);
+	void insert(ComplexTerms::value_type const &, ComplexNumber factor);
 	std::ostream & print(std::ostream & stream) const;
 	std::ostream & print(std::ostream & stream, PolynomialOptimizationProblem const & rhs) const;
 
 private:
 	ComplexTermsPtr _terms;
+	Degree2TermsPtr _degree;
 };
 
 

@@ -120,7 +120,6 @@ Number negInfinity();
 //typedef std::vector<Triplet> Triplets;
 
 // forward declarations
-class RealMonomial;
 class ComplexMonomial;
 class ComplexPolynomial;
 class ComplexMonomialPredicate;
@@ -129,11 +128,15 @@ class ComplexMonomialPredicate;
 class IndexedPool;
 
 // typedef
+
 typedef std::shared_ptr<ComplexMonomial> ComplexMonomialPtr;
-typedef std::shared_ptr<RealMonomial> RealMonomialPtr;
 typedef std::map<ComplexMonomialPtr, ComplexNumber, ComplexMonomialPredicate> ComplexTerms;
-typedef std::map<ComplexMonomialPtr, int, ComplexMonomialPredicate> ComplexMonomialPtr2Int;
 typedef std::shared_ptr<ComplexTerms> ComplexTermsPtr;
+typedef std::list<ComplexMonomialPtr> ComplexMonomialPtrList;
+
+typedef std::map<ComplexMonomialPtr, int, ComplexMonomialPredicate> ComplexMonomialPtr2Int;
+typedef std::map<int, std::set<ComplexMonomialPtr, ComplexMonomialPredicate> > Degree2Terms;
+typedef std::shared_ptr<Degree2Terms> Degree2TermsPtr;
 
 typedef std::shared_ptr<IndexedPool> IndexedPoolPtr;
 typedef std::map<std::string, IndexedPoolPtr> Str2Pool;
@@ -145,16 +148,11 @@ std::ostream & printAlpha(std::ostream & stream, IntVector const & rhs);
 std::ostream & operator<<(std::ostream &, PolynomialOptimizationProblem const &);
 std::ostream & operator<<(std::ostream &, Constraint const &);
 
-std::ostream & operator<<(std::ostream & stream, RealMonomial const & rhs);
+
 std::ostream & operator<<(std::ostream & stream, ComplexMonomial const & rhs);
 std::ostream & operator<<(std::ostream & stream, ComplexMonomialPtr const & rhs);
 std::ostream & operator<<(std::ostream & stream, ComplexPolynomial const & rhs);
 
-RealMonomialPtr operator+(RealMonomial const & lhs, RealMonomial const & rhs);
-
-bool operator<(RealMonomial const &  lhs, RealMonomial const & rhs);
-bool operator>(RealMonomial const &  lhs, RealMonomial const & rhs);
-bool operator==(RealMonomial const &  lhs, RealMonomial const & rhs);
 
 ComplexMonomialPtr operator+(ComplexMonomial const & lhs, ComplexMonomial const & rhs);
 

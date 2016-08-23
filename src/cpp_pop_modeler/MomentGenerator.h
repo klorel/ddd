@@ -11,7 +11,7 @@ public:
 	~MomentGenerator();
 
 
-	void build();
+	void build(ComplexMonomialPtrList & result);
 	std::ostream & print(std::ostream &,Int2Int const & alpha, size_t n) const;
 private:
 	size_t _order;

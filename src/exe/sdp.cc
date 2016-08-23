@@ -7,6 +7,7 @@
 #include "MatPowerData.h"
 
 #include "MomentGenerator.h"
+#include "SosDualProblem.h"
 
 void read_graph(std::string const & file_name, SparseMatrix & output, bool complete_graph) {
 	Timer timer;
@@ -71,20 +72,21 @@ void read_graph(std::string const & file_name, SparseMatrix & output, bool compl
 }
 
 int main(int argc, char**argv) {
-	//MomentGenerator momentGenerator(3, 4);
-
-	//momentGenerator.build();
-	//return 0;
-
 
 	PolynomialOptimizationProblem p;
 	IndexedPool const & x = p.newvarpool("x", 2);
 	ComplexPolynomial term1 = (1 + x(0)*x(0));
 	ComplexPolynomial term2 = (1 + x(1)*x(1));
 	ComplexPolynomial term3 = (1 + x(0)+x(1));
-	p.minimize() = -2 * term3*term3;
-	//p.minimize() = term1*term1 + term2*term2 - 2 * term3*term3;
+	//p.minimize() = -2 * term3*term3;
+	p.minimize() = term1*term1 + term2*term2 - 2 * term3*term3;
+	
+	p.add(x(0)*x(0) >= 1);
+
 	std::cout << p << std::endl;
+
+	SosDualProblem sos(p);
+	sos.run(atoi(argv[1]));
 
 	//ComplexMonomialPtr2Int monomials;
 	//p.get_all_monomial(monomials);
