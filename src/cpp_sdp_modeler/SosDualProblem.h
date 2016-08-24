@@ -9,7 +9,7 @@
 typedef void * MSKenv_t;
 typedef void * MSKtask_t;
 
-
+typedef std::map<ComplexMonomialPtr, IntPair2Dbl, ComplexMonomialPredicate> MonomialDecomposition;
 class SosDualProblem {
 public:
 	SosDualProblem(PolynomialOptimizationProblem &);
@@ -31,7 +31,7 @@ private:
 	PolynomialOptimizationProblem * _pop;
 	std::vector<ComplexMonomialPtr> _id2monomial;
 	ComplexMonomialPtr2Int _monomial2id;
-	std::map<ComplexMonomialPtr, IntPairSet, ComplexMonomialPredicate> _B_alpha;
+	MonomialDecomposition _B_alpha;
 	int _n;
 
 };

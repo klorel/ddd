@@ -15,6 +15,7 @@ public:
 	ComplexPolynomial H()const;
 	ComplexPolynomial conjugate()const;
 	void get_all_monomial(ComplexMonomialPtr2Int & output)const;
+	void clear();
 public:
 	ComplexPolynomial();
 	ComplexPolynomial(Number value);

@@ -8,6 +8,7 @@
 
 #include "MomentGenerator.h"
 #include "SosDualProblem.h"
+#include "PopInstances.h"
 
 void read_graph(std::string const & file_name, SparseMatrix & output, bool complete_graph) {
 	Timer timer;
@@ -74,14 +75,19 @@ void read_graph(std::string const & file_name, SparseMatrix & output, bool compl
 int main(int argc, char**argv) {
 
 	PolynomialOptimizationProblem p;
-	IndexedPool const & x = p.newvarpool("x", 2);
-	ComplexPolynomial term1 = (1 + x(0)*x(0));
-	ComplexPolynomial term2 = (1 + x(1)*x(1));
-	ComplexPolynomial term3 = (1 + x(0)+x(1));
+	//IndexedPool const & x = p.newvarpool("x", 2);
+	//ComplexPolynomial term1 = (1 + x(0)*x(0));
+	//ComplexPolynomial term2 = (1 + x(1)*x(1));
+	//ComplexPolynomial term3 = (1 + x(0)+x(1));
 	//p.minimize() = -2 * term3*term3;
-	p.minimize() = term1*term1 + term2*term2 - 2 * term3*term3;
-	
-	p.add(x(0)*x(0) >= 1);
+	//p.minimize() = term1*term1 + term2*term2 - 2 * term3*term3;
+	////IndexedPool const & x = p.newvarpool("x", 1);	
+	////p.minimize() = x(0)*x(0);
+	//double const x_opt(1.3247);
+	//double const x_lb(1e-2+1.3247);
+	//p.add(x(0)*x(0) >= x_lb*x_lb);
+	//p.add(x(1)*x(1) >= x_lb*x_lb);
+	GetInstance<PROBLEM_2_6>(p);
 
 	std::cout << p << std::endl;
 

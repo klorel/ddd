@@ -237,7 +237,7 @@ void PolynomialOptimizationProblem::clear() {
 
 	_varpools.clear();
 	_varnames.clear();
-	_minimize = 0;
+	_minimize.clear();
 }
 
 std::ostream & operator<<(std::ostream & lhs, PolynomialOptimizationProblem const & rhs) {

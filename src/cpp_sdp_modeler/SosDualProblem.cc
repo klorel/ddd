@@ -44,7 +44,7 @@ void SosDualProblem::set_up_moment(int order) {
 	for (ComplexMonomialPtr2Int::const_iterator it(_monomial2id.begin()); it != _monomial2id.end() && it->first->degree() <= order; ++it) {
 		++_n;
 		for (ComplexMonomialPtr2Int::const_iterator jt(it); jt != _monomial2id.end() && jt->first->degree() <= order; ++jt) {
-			_B_alpha[it->first + jt->first].insert({ jt->second, it->second });
+			_B_alpha[it->first + jt->first].insert({ { jt->second, it->second }, 1 });
 		}
 	}
 	//std::cout << "momentVector size is " << momentVector.size() << std::endl;
@@ -58,7 +58,7 @@ void SosDualProblem::set_up_moment(int order) {
 	//	}
 	//	std::cout << std::endl;
 	//}
-	std::cout << "Bigger monomial degree is " << _monomial2id.rbegin()->first->degree() << std::endl;
+	std::cout << "Highest monomial degree is " << _monomial2id.rbegin()->first->degree() << std::endl;
 }
 
 void SosDualProblem::run(int order) {
@@ -111,50 +111,54 @@ void SosDualProblem::solve(MSKenv_t & env, MSKtask_t task) {
 
 	//NumberVector barx;
 
-	//if (r == MSK_RES_OK)
-	//{
-	//	MSKsolstae solsta;
+	if (r == MSK_RES_OK)
+	{
+		MSKsolstae solsta;
+		double primalobj;
+		double dualobj;
+		MSK_getsolsta(task, MSK_SOL_ITR, &solsta);
 
-	//	MSK_getsolsta(task, MSK_SOL_ITR, &solsta);
+		switch (solsta)
+		{
+		case MSK_SOL_STA_OPTIMAL:
+		case MSK_SOL_STA_NEAR_OPTIMAL:
+			//for (int i(0); i < NUMBARVAR; ++i) {
+			//	barx.assign(LENBARVAR[i], -1);
+			//	MSK_getbarxj(task,
+			//		MSK_SOL_ITR,    /* Request the interior solution. */
+			//		i,
+			//		barx.data());
+				//for (int j(0); j < LENBARVAR[i]; ++j) {
+				//	std::cout << std::setw(5) << i;
+				//	std::cout << std::setw(5) << j;
+				//	std::cout << std::setw(15) << barx[j] << std::endl;;
+				//}
+			//}
+			MSK_getprimalobj(task, MSK_SOL_ITR, &primalobj);
+			MSK_getprimalobj(task, MSK_SOL_ITR, &dualobj);
+			std::cout << "primalobj  = " << primalobj << std::endl;
+			std::cout << "dualobj    = " << dualobj << std::endl;
 
-	//	switch (solsta)
-	//	{
-	//	case MSK_SOL_STA_OPTIMAL:
-	//	case MSK_SOL_STA_NEAR_OPTIMAL:
-	//		//for (int i(0); i < NUMBARVAR; ++i) {
-	//		//	barx.assign(LENBARVAR[i], -1);
-	//		//	MSK_getbarxj(task,
-	//		//		MSK_SOL_ITR,    /* Request the interior solution. */
-	//		//		i,
-	//		//		barx.data());
-	//			//for (int j(0); j < LENBARVAR[i]; ++j) {
-	//			//	std::cout << std::setw(5) << i;
-	//			//	std::cout << std::setw(5) << j;
-	//			//	std::cout << std::setw(15) << barx[j] << std::endl;;
-	//			//}
-	//		//}
+			break;
+		case MSK_SOL_STA_DUAL_INFEAS_CER:
+		case MSK_SOL_STA_PRIM_INFEAS_CER:
+		case MSK_SOL_STA_NEAR_DUAL_INFEAS_CER:
+		case MSK_SOL_STA_NEAR_PRIM_INFEAS_CER:
+			printf("Primal or dual infeasibility certificate found.\n");
+			break;
 
-
-	//		break;
-	//	case MSK_SOL_STA_DUAL_INFEAS_CER:
-	//	case MSK_SOL_STA_PRIM_INFEAS_CER:
-	//	case MSK_SOL_STA_NEAR_DUAL_INFEAS_CER:
-	//	case MSK_SOL_STA_NEAR_PRIM_INFEAS_CER:
-	//		printf("Primal or dual infeasibility certificate found.\n");
-	//		break;
-
-	//	case MSK_SOL_STA_UNKNOWN:
-	//		printf("The status of the solution could not be determined.\n");
-	//		break;
-	//	default:
-	//		printf("Other solution status.");
-	//		break;
-	//	}
-	//}
-	//else
-	//{
-	//	printf("Error while optimizing.\n");
-	//}
+		case MSK_SOL_STA_UNKNOWN:
+			printf("The status of the solution could not be determined.\n");
+			break;
+		default:
+			printf("Other solution status.");
+			break;
+		}
+	}
+	else
+	{
+		printf("Error while optimizing.\n");
+	}
 
 
 	if (r != MSK_RES_OK)
@@ -208,8 +212,8 @@ void SosDualProblem::add_obj(MSKenv_t & env, MSKtask_t task) {
 		for (auto const & ij : _B_alpha[alpha]) {
 			i.push_back(alphaId - 1);
 			j.push_back(id_barvar);
-			k.push_back(ij.first);
-			l.push_back(ij.second);
+			k.push_back(ij.first.first);
+			l.push_back(ij.first.second);
 			v.push_back(1);
 		}
 	}
@@ -272,48 +276,84 @@ void SosDualProblem::add_ctr(MSKenv_t & env, MSKtask_t task, int id_ctr) {
 		NumberVector v;
 		double const factor(ub != posInfinity() ? -1 : 1);
 		double const bound(ub != posInfinity() ? ub : lb);
+		ComplexPolynomial f_reduced = factor*ctr.f() - bound*factor;
+
 		j.push_back(id_barvar);
 		k.push_back(0);
 		l.push_back(0);
-		v.push_back(-bound*factor);
+		v.push_back(-factor*f_reduced.constant().real());
 		r = MSK_putbarcblocktriplet(task, (int)v.size(), j.data(), k.data(), l.data(), v.data());
-		i.clear();
-		j.clear();
-		k.clear();
-		l.clear();
-		v.clear();
 
 		int const degree(ctr.f().degree());
-		int const order(_monomial2id.rbegin()->first->degree());
-		for (auto const & term : ctr.f().terms()) {
-			for (ComplexMonomialPtr2Int::const_iterator it(_monomial2id.begin()); it != _monomial2id.end() && 2 * it->first->degree() + degree <= order; ++it) {
-				for (ComplexMonomialPtr2Int::const_iterator jt(it); jt != _monomial2id.end() && 2 * jt->first->degree() + degree <= order; ++jt) {
-					ComplexMonomialPtr alpha = it->first + jt->first + term.first;
-					ComplexMonomialPtr2Int::const_iterator alphaIt(_monomial2id.find(alpha));
-					if (alphaIt != _monomial2id.end()) {
-						for (auto const & ij : _B_alpha[alpha]) {
-							i.push_back(alphaIt->second - 1);
-							j.push_back(id_barvar);
-							k.push_back(ij.first);
-							l.push_back(ij.second);
-							v.push_back(term.second.real()*factor);
+		int const highest(_monomial2id.rbegin()->first->degree());
+		
+		//std::cout << "degree  " << degree << std::endl;
+		//std::cout << "highest " << highest << std::endl;
+		//std::cout << "factor  " << factor << std::endl;
+		std::cout << "f_reduced = " << f_reduced << std::endl;
+		MonomialDecomposition C_i_alpha;
+		for (auto const & term : f_reduced.terms()) {
+			int alpha_i = 0;
+			for (ComplexMonomialPtr2Int::const_iterator it(_monomial2id.begin()); it != _monomial2id.end() && 2 * it->first->degree() + degree <= highest; ++it, ++alpha_i) {
+				int alpha_j = alpha_i;
+				for (ComplexMonomialPtr2Int::const_iterator jt(it); jt != _monomial2id.end() && 2 * jt->first->degree() + degree <= highest; ++jt, ++alpha_j) {
+					
+					ComplexMonomialPtr alpha = it->first + jt->first;
+					ComplexMonomialPtr beta = alpha + term.first;
+					//std::cout << "----------------------------" << std::endl;
+					//std::cout << it->first << " | " << jt->first <<" : "<<term.second.real() << " "<<beta<< std::endl;
+					//std::cout << "alpha_i = " << alpha_i << std::endl;
+					//std::cout << "alpha_j = " << alpha_j << std::endl;
+					//std::cout << term.second.real() << " " << beta << std::endl;
+					if (beta->degree() > 0) {
+						ComplexMonomialPtr2Int::const_iterator alphaIt(_monomial2id.find(alpha));
+						ComplexMonomialPtr2Int::const_iterator betaIt(_monomial2id.find(beta));
+						if (alphaIt != _monomial2id.end() && betaIt != _monomial2id.end()) {							
+								C_i_alpha[beta][ {alpha_i, alpha_j}] = term.second.real();
 						}
-					}
-					else {
-						std::cout << "Unfound " << alpha << std::endl;
-						std::cout << "term    " << term.first << std::endl;
-						std::cout << "it      " << it->first<< ", " << it->first->degree() << std::endl;
-						std::cout << "jt      " << jt->first<< ", " << jt->first->degree() << std::endl;
-						std::cout << "degree  " << degree << std::endl;
-						std::cout << "order   " << order << std::endl;
-						throw std::invalid_argument("ERROR");
+						else {
+							std::cout << "Unfound " << alpha << std::endl;
+							std::cout << "term    " << term.first << std::endl;
+							std::cout << "it      " << it->first << ", " << it->first->degree() << std::endl;
+							std::cout << "jt      " << jt->first << ", " << jt->first->degree() << std::endl;
+							std::cout << "degree  " << degree << std::endl;
+							std::cout << "highest  " << highest << std::endl;
+							throw std::invalid_argument("ERROR");
+						}
 					}
 					//_B_alpha[*it->first + *jt->first].insert({ jt->second, it->second });
 				}
 			}
 		}
+		i.clear();
+		j.clear();
+		k.clear();
+		l.clear();
+		v.clear();
+		for (auto const & term : C_i_alpha) {
+			ComplexMonomialPtr2Int::const_iterator alphaIt(_monomial2id.find(term.first));
+			for (auto const & ij : term.second) {
+				i.push_back(alphaIt->second-1);
+				j.push_back(id_barvar);
+				k.push_back(ij.first.second);
+				l.push_back(ij.first.first);
+				v.push_back(ij.second);
+			}
+		}
+		//std::cout << "C_i_alpha : " << std::endl;
+		//for (auto const & term : C_i_alpha) {
+		//	std::cout << std::setw(8) << term.first;
+		//	std::cout << " : ";
+		//	for (auto const & ij : term.second) {
+		//		std::cout << ij.second<<"(" << ij.first.first << ", " << ij.first.second << ") ";
+		//	}
+		//	std::cout << std::endl;
+		//}
 		r = MSK_putbarablocktriplet(task, (int)v.size(), i.data(), j.data(), k.data(), l.data(), v.data());
 		if (r != MSK_RES_OK)throw std::invalid_argument("MSK_putbarablMSK_putbarablocktripletocktriplet ");
+
+
+		//std::exit(0);
 	}
 
 }

@@ -11,7 +11,10 @@ void ComplexPolynomial::get_all_monomial(ComplexMonomialPtr2Int & output)const {
 		output.insert({ term.first, 1 });
 	}
 }
-
+void ComplexPolynomial::clear() {
+	_terms->clear();
+	_degree->clear();
+}
 
 ComplexPolynomial operator+(ComplexPolynomial const & rhs) {
 	ComplexPolynomial result;

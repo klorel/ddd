@@ -80,6 +80,7 @@ typedef std::vector<Int2IntPtr> Alphas;
 typedef std::pair<int, int> IntPair;
 typedef std::pair<IntPair, int> IntTriple;
 typedef std::map<IntPair, int> IntPair2Int;
+typedef std::map<IntPair, Number> IntPair2Dbl;
 typedef std::set<IntPair> IntPairSet;
 typedef std::set<IntTriple> IntTripleSet;
 
