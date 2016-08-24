@@ -87,7 +87,9 @@ int main(int argc, char**argv) {
 	//double const x_lb(1e-2+1.3247);
 	//p.add(x(0)*x(0) >= x_lb*x_lb);
 	//p.add(x(1)*x(1) >= x_lb*x_lb);
-	GetInstance<PROBLEM_2_6>(p);
+	//GetInstance<PROBLEM_2_6>(p);
+	//std::cout << ComplexPolynomial::Pow(0, 4) << std::endl; return 0;
+	GetInstance<PROBLEM_4_6>(p);
 
 	std::cout << p << std::endl;
 

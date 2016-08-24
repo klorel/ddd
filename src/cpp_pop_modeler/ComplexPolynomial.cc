@@ -257,3 +257,14 @@ void ComplexPolynomial::operator/=(ComplexPolynomial const & rhs) {
 	_degree = result._degree;
 }
 
+
+
+ComplexPolynomial ComplexPolynomial::Pow(PosInt id, PosInt p) {
+	ComplexPolynomial result(1);
+	ComplexPolynomial seed = Build(id);
+	for (int i(0); i < p; ++i) {
+		result *= seed;
+	}
+	return result;
+
+}

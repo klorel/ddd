@@ -24,6 +24,7 @@ public:
 	void add_obj(MSKenv_t & env, MSKtask_t task);
 	void add_ctr(MSKenv_t & env, MSKtask_t task, int id_ctr);
 	void solve(MSKenv_t & env, MSKtask_t task);
+	std::ostream & print(std::ostream &)const;
 private:
 	// B_alpha (0) and C_i_alpha (i>0)
 	Matrix _matrix;
@@ -32,6 +33,11 @@ private:
 	std::vector<ComplexMonomialPtr> _id2monomial;
 	ComplexMonomialPtr2Int _monomial2id;
 	MonomialDecomposition _B_alpha;
+	std::vector<MonomialDecomposition> C_i_alpha;
+	NumberVector _rhs;
+	NumberVector _c;
+	
 	int _n;
-
+	NumberVector _y;
+	IntVector _lenbarvar;
 };

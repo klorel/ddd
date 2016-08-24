@@ -58,6 +58,7 @@ void SosDualProblem::set_up_moment(int order) {
 	//	}
 	//	std::cout << std::endl;
 	//}
+	std::cout << "Number of monomials     is " << _monomial2id.size() << std::endl;
 	std::cout << "Highest monomial degree is " << _monomial2id.rbegin()->first->degree() << std::endl;
 }
 
@@ -78,7 +79,17 @@ void SosDualProblem::run(int order) {
 
 	MSK_linkfunctotaskstream(task, MSK_STREAM_LOG, NULL, printstr_sos_dual_problem);
 	if (r != MSK_RES_OK)throw std::invalid_argument("MSK_linkfunctotaskstream ");
-	
+
+	//r = MSK_putintparam(task, MSK_IPAR_INTPNT_SCALING, MSK_SCALING_NONE);
+	//if (r != MSK_RES_OK)throw std::invalid_argument("MSK_IPAR_INTPNT_SCALING ");
+	//double const zero(1e-6);
+	//r = MSK_putdouparam(task, MSK_DPAR_INTPNT_TOL_PFEAS, zero);
+	//if (r != MSK_RES_OK)throw std::invalid_argument("MSK_DPAR_INTPNT_TOL_PFEAS ");
+	//r = MSK_putdouparam(task, MSK_DPAR_INTPNT_TOL_DFEAS, zero);
+	//if (r != MSK_RES_OK)throw std::invalid_argument("MSK_DPAR_INTPNT_TOL_DFEAS ");
+	//r = MSK_putdouparam(task, MSK_DPAR_INTPNT_TOL_REL_GAP, zero);
+	//if (r != MSK_RES_OK)throw std::invalid_argument("MSK_DPAR_INTPNT_TOL_REL_GAP ");
+
 	r = MSK_putobjsense(task, MSK_OBJECTIVE_SENSE_MAXIMIZE);
 	if (r != MSK_RES_OK)throw std::invalid_argument("MSK_putobjsense ");
 	r = MSK_appendcons(task, numcon());
@@ -86,9 +97,12 @@ void SosDualProblem::run(int order) {
 
 	// part related to the objective function
 	add_obj(env, task);
+	C_i_alpha.resize(_pop->nctrs());
 	for (int i(0); i < _pop->nctrs(); ++i) {
 		add_ctr(env, task, i);
 	}
+	//print(std::cout);
+
 	solve(env, task);
 
 	/* Delete the task and the associated data. */
@@ -138,7 +152,8 @@ void SosDualProblem::solve(MSKenv_t & env, MSKtask_t task) {
 			MSK_getprimalobj(task, MSK_SOL_ITR, &dualobj);
 			std::cout << "primalobj  = " << primalobj << std::endl;
 			std::cout << "dualobj    = " << dualobj << std::endl;
-
+			_y.assign(numcon(), 0);
+			MSK_gety(task, MSK_SOL_ITR, _y.data());
 			break;
 		case MSK_SOL_STA_DUAL_INFEAS_CER:
 		case MSK_SOL_STA_PRIM_INFEAS_CER:
@@ -159,7 +174,10 @@ void SosDualProblem::solve(MSKenv_t & env, MSKtask_t task) {
 	{
 		printf("Error while optimizing.\n");
 	}
-
+	for (auto const & alpha : _monomial2id) {
+		if(alpha.second>0)
+		std::cout << std::setw(25)<<alpha.first << " = " << _y[alpha.second - 1] << std::endl;
+	}
 
 	if (r != MSK_RES_OK)
 	{
@@ -181,13 +199,13 @@ void SosDualProblem::solve(MSKenv_t & env, MSKtask_t task) {
 // X sdp
 void SosDualProblem::add_obj(MSKenv_t & env, MSKtask_t task) {
 	MSKrescodee  r = MSK_RES_OK;
-	int dim(lenbarvar());
 	int id_barvar;
 	r = MSK_getnumbarvar(task, &id_barvar);
 	if (r != MSK_RES_OK)throw std::invalid_argument("MSK_getnumbarvar ");
-	r = MSK_appendbarvars(task, 1, &dim);
+
+	_lenbarvar.push_back(lenbarvar());
+	r = MSK_appendbarvars(task, 1, &_lenbarvar.back());
 	if (r != MSK_RES_OK)throw std::invalid_argument("MSK_appendbarvars ");
-	NumberVector rhs;
 	IntVector i;
 	IntVector j;
 	IntVector k;
@@ -198,6 +216,7 @@ void SosDualProblem::add_obj(MSKenv_t & env, MSKtask_t task) {
 	k.push_back(0);
 	l.push_back(0);
 	v.push_back(-1);
+	_c.push_back(v.back());
 	r = MSK_putbarcblocktriplet(task, (int)v.size(), j.data(), k.data(), l.data(), v.data());
 	if (r != MSK_RES_OK)throw std::invalid_argument("MSK_putbarablocktriplet ");
 
@@ -232,14 +251,18 @@ void SosDualProblem::add_obj(MSKenv_t & env, MSKtask_t task) {
 		i[n] = n;
 	}
 	std::vector<MSKboundkeye> fx(numcon(), MSK_BK_FX);
+	_rhs.assign(numcon(), 0);
 	for (auto const & term : _pop->minimize().terms()) {
 		//std::cout << "adding " << term.first << std::endl;
 		ComplexMonomialPtr2Int::const_iterator ite(_monomial2id.find(term.first));
-		if (ite != _monomial2id.end()) {
-			v[ite->second - 1] = term.second.real();
-		}
-		else {
-			throw std::invalid_argument("unfound monomial ");
+		if (ite->second != 0) {
+			if (ite != _monomial2id.end()) {
+				v[ite->second - 1] = term.second.real();
+				_rhs[ite->second - 1] = term.second.real();
+			}
+			else {
+				throw std::invalid_argument("unfound monomial ");
+			}
 		}
 	}
 	r = MSK_putconboundlist(task, numcon(), i.data(), fx.data(), v.data(), v.data());
@@ -260,12 +283,9 @@ void SosDualProblem::add_ctr(MSKenv_t & env, MSKtask_t task, int id_ctr) {
 	}
 	else {
 		// inequality constraint results in sdp variables (if <= constraint is multiplied by -1)
-		int dim(lenbarvar());
 		int id_barvar;
 		r = MSK_getnumbarvar(task, &id_barvar);
 		if (r != MSK_RES_OK)throw std::invalid_argument("MSK_getnumbarvar ");
-		r = MSK_appendbarvars(task, 1, &dim);
-		if (r != MSK_RES_OK)throw std::invalid_argument("MSK_appendbarvars ");
 		// alpha
 		IntVector i;
 		// barvar
@@ -278,26 +298,22 @@ void SosDualProblem::add_ctr(MSKenv_t & env, MSKtask_t task, int id_ctr) {
 		double const bound(ub != posInfinity() ? ub : lb);
 		ComplexPolynomial f_reduced = factor*ctr.f() - bound*factor;
 
-		j.push_back(id_barvar);
-		k.push_back(0);
-		l.push_back(0);
-		v.push_back(-factor*f_reduced.constant().real());
-		r = MSK_putbarcblocktriplet(task, (int)v.size(), j.data(), k.data(), l.data(), v.data());
 
 		int const degree(ctr.f().degree());
 		int const highest(_monomial2id.rbegin()->first->degree());
-		
+
 		//std::cout << "degree  " << degree << std::endl;
 		//std::cout << "highest " << highest << std::endl;
 		//std::cout << "factor  " << factor << std::endl;
-		std::cout << "f_reduced = " << f_reduced << std::endl;
-		MonomialDecomposition C_i_alpha;
+		//std::cout << "f_reduced = " << f_reduced << std::endl;
+		int n(-1);
 		for (auto const & term : f_reduced.terms()) {
 			int alpha_i = 0;
 			for (ComplexMonomialPtr2Int::const_iterator it(_monomial2id.begin()); it != _monomial2id.end() && 2 * it->first->degree() + degree <= highest; ++it, ++alpha_i) {
 				int alpha_j = alpha_i;
 				for (ComplexMonomialPtr2Int::const_iterator jt(it); jt != _monomial2id.end() && 2 * jt->first->degree() + degree <= highest; ++jt, ++alpha_j) {
-					
+					n = std::max(alpha_i, n);
+					n = std::max(alpha_j, n);
 					ComplexMonomialPtr alpha = it->first + jt->first;
 					ComplexMonomialPtr beta = alpha + term.first;
 					//std::cout << "----------------------------" << std::endl;
@@ -305,11 +321,11 @@ void SosDualProblem::add_ctr(MSKenv_t & env, MSKtask_t task, int id_ctr) {
 					//std::cout << "alpha_i = " << alpha_i << std::endl;
 					//std::cout << "alpha_j = " << alpha_j << std::endl;
 					//std::cout << term.second.real() << " " << beta << std::endl;
-					if (beta->degree() > 0) {
+					if (beta->degree() > 0 && !isZero(term.second.real())) {
 						ComplexMonomialPtr2Int::const_iterator alphaIt(_monomial2id.find(alpha));
 						ComplexMonomialPtr2Int::const_iterator betaIt(_monomial2id.find(beta));
-						if (alphaIt != _monomial2id.end() && betaIt != _monomial2id.end()) {							
-								C_i_alpha[beta][ {alpha_i, alpha_j}] = term.second.real();
+						if (alphaIt != _monomial2id.end() && betaIt != _monomial2id.end()) {
+							C_i_alpha[id_ctr][beta][{alpha_j, alpha_i}] = term.second.real();
 						}
 						else {
 							std::cout << "Unfound " << alpha << std::endl;
@@ -325,35 +341,99 @@ void SosDualProblem::add_ctr(MSKenv_t & env, MSKtask_t task, int id_ctr) {
 				}
 			}
 		}
+		_lenbarvar.push_back(n + 1);
+		r = MSK_appendbarvars(task, 1, &_lenbarvar.back());
+		if (r != MSK_RES_OK)throw std::invalid_argument("MSK_appendbarvars ");
 		i.clear();
 		j.clear();
 		k.clear();
 		l.clear();
 		v.clear();
-		for (auto const & term : C_i_alpha) {
+		for (auto const & term : C_i_alpha[id_ctr]) {
 			ComplexMonomialPtr2Int::const_iterator alphaIt(_monomial2id.find(term.first));
 			for (auto const & ij : term.second) {
-				i.push_back(alphaIt->second-1);
+				i.push_back(alphaIt->second - 1);
 				j.push_back(id_barvar);
-				k.push_back(ij.first.second);
-				l.push_back(ij.first.first);
+				k.push_back(ij.first.first);
+				l.push_back(ij.first.second);
 				v.push_back(ij.second);
 			}
 		}
+		r = MSK_putbarablocktriplet(task, (int)v.size(), i.data(), j.data(), k.data(), l.data(), v.data());
+		if (r != MSK_RES_OK)throw std::invalid_argument("MSK_putbarablMSK_putbarablocktripletocktriplet ");
+
+
+		i.clear();
+		j.clear();
+		k.clear();
+		l.clear();
+		v.clear();
+		j.push_back(id_barvar);
+		k.push_back(0);
+		l.push_back(0);
+		v.push_back(-f_reduced.constant().real());
+		_c.push_back(v.back());
+		r = MSK_putbarcblocktriplet(task, (int)v.size(), j.data(), k.data(), l.data(), v.data());
 		//std::cout << "C_i_alpha : " << std::endl;
-		//for (auto const & term : C_i_alpha) {
+		//for (auto const & term : C_i_alpha[id_ctr]) {
 		//	std::cout << std::setw(8) << term.first;
 		//	std::cout << " : ";
 		//	for (auto const & ij : term.second) {
-		//		std::cout << ij.second<<"(" << ij.first.first << ", " << ij.first.second << ") ";
+		//		std::cout << ij.second << "(" << ij.first.first << ", " << ij.first.second << ") ";
 		//	}
 		//	std::cout << std::endl;
 		//}
-		r = MSK_putbarablocktriplet(task, (int)v.size(), i.data(), j.data(), k.data(), l.data(), v.data());
-		if (r != MSK_RES_OK)throw std::invalid_argument("MSK_putbarablMSK_putbarablocktripletocktriplet ");
 
 
 		//std::exit(0);
 	}
 
+}
+
+std::ostream & SosDualProblem::print(std::ostream & stream)const {
+	std::cout << "Printing SosDualProblem" << std::endl;
+	for (int i(1); i < _id2monomial.size(); ++i) {
+		ComplexMonomialPtr alpha(_id2monomial[i]);
+		std::cout << std::setw(8) << alpha << std::endl;
+		std::cout << std::setw(8) << "RHS";
+		std::cout << std::setw(8) << _rhs[i - 1] << std::endl;
+		{
+			MonomialDecomposition::const_iterator it(_B_alpha.find(alpha));
+			if (it != _B_alpha.end()) {
+				for (auto const & ij : it->second) {
+					std::cout << std::setw(8) << "X";
+					std::cout << std::setw(8) << ij.first.first;
+					std::cout << std::setw(8) << ij.first.second;
+					std::cout << std::setw(8) << ij.second;
+					std::cout << std::endl;
+				}
+			}
+		}
+		for (int id_ctr(0); id_ctr < C_i_alpha.size(); ++id_ctr) {
+			MonomialDecomposition const & ctr(C_i_alpha[id_ctr]);
+			MonomialDecomposition::const_iterator it(ctr.find(alpha));
+			if (it != ctr.end()) {
+				for (auto const & ij : it->second) {
+					std::stringstream buffer;
+					buffer << "Z_" << id_ctr;
+					std::cout << std::setw(8) << buffer.str();
+					std::cout << std::setw(8) << ij.first.first;
+					std::cout << std::setw(8) << ij.first.second;
+					std::cout << std::setw(8) << ij.second;
+					std::cout << std::endl;
+				}
+			}
+		}
+	}
+	for (int i(0); i < numbarvar(); ++i) {
+		std::cout << std::setw(8) << "MAX";
+		std::stringstream buffer;
+		if (i > 0)
+			buffer << "Z_" << i - 1;
+		else buffer << "X";
+		std::cout << std::setw(8) << buffer.str();
+		std::cout << std::setw(8) << _c[i];
+		std::cout << std::endl;
+	}
+	return stream;
 }

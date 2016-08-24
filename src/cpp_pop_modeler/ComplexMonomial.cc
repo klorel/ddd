@@ -27,16 +27,18 @@ bool ComplexMonomial::zero() const {
 }
 
 std::ostream & ComplexMonomial::print(std::ostream & stream)const {
+	std::stringstream buffer;
 	if (!zero()) {
 		for (auto const & alpha : _id2degree) {
-			stream << "z" << "[" << alpha.first << "]" << (alpha.second < 0 ? "H" : "");
+			buffer << "z" << "[" << alpha.first << "]" << (alpha.second < 0 ? "H" : "");
 			if (std::abs(alpha.second) > 1)
-				stream << "^" << std::abs(alpha.second);
+				buffer << "^" << std::abs(alpha.second);
 		}
 	}
 	else {
-		stream << "1";
+		buffer << "1";
 	}
+	stream << buffer.str();
 	return stream;
 }
 std::ostream & ComplexMonomial::print(std::ostream & stream, PolynomialOptimizationProblem const & rhs)const {

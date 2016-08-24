@@ -23,6 +23,8 @@ public:
 	ComplexPolynomial(ComplexNumber const & value);
 	ComplexPolynomial(ComplexMonomialPtr value);
 
+	static ComplexPolynomial Pow(PosInt id, PosInt p);
+
 	static ComplexPolynomial i();
 	static ComplexPolynomial Build(PosInt id);
 	static ComplexPolynomial Build(PosInt id, Number value);
