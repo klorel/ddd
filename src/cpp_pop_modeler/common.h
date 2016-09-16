@@ -51,6 +51,12 @@ typedef std::shared_ptr<Number>  NumberPtr;
 typedef std::shared_ptr<LinearTerm> LinearTermPtr;
 typedef std::shared_ptr<QuadraticTerm> QuadraticTermPtr;
 
+typedef std::array<int, 2> IntArray2;
+typedef std::array<int, 4> IntArray4;
+typedef std::map<IntArray2, Number> Matrix2;
+typedef std::map<IntArray4, Number> Matrix4;
+
+
 Index2 get_index(int i, int j);
 
 bool isZero(Number value);

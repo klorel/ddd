@@ -4,7 +4,7 @@
 #include "common.h"
 #include "PolynomialOptimizationProblem.h"
 #include "SdpProblem.h"
-
+#include "ConicProblem.h"
 
 typedef void * MSKenv_t;
 typedef void * MSKtask_t;
@@ -27,7 +27,7 @@ public:
 	std::ostream & print(std::ostream &)const;
 private:
 	// B_alpha (0) and C_i_alpha (i>0)
-	Matrix _matrix;
+	Matrix4 _matrix;
 
 	PolynomialOptimizationProblem * _pop;
 	std::vector<ComplexMonomialPtr> _id2monomial;
@@ -40,4 +40,6 @@ private:
 	int _n;
 	NumberVector _y;
 	IntVector _lenbarvar;
+
+	ConicProblem _conic;
 };

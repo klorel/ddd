@@ -5,8 +5,6 @@
 class SdpProblem;
 void get_sdp_1(SdpProblem & sdp);
 
-typedef std::array<int, 4> IntArray4;
-typedef std::map<IntArray4, Number> Matrix;
 
 class SdpProblem {
 public:
@@ -43,7 +41,7 @@ public:
 	int dim()const;
 	int nblock()const;
 	int nctr()const;
-	void dual(Matrix &)const;
+	void dual(Matrix4 &)const;
 
 	void read(std::string const &);
 	void matrix_completion(IntSetPtrSet & output)const;
@@ -51,7 +49,7 @@ public:
 	void sparsity_pattern_2(SparsityPattern & output)const;
 public:
 	NumberVector _b;
-	Matrix _matrix;
+	Matrix4 _matrix;
 	Blocks _blocks;
 };
 

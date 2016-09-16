@@ -97,6 +97,7 @@ void SosDualProblem::run(int order) {
 
 	// part related to the objective function
 	add_obj(env, task);
+	// part related to the contraints
 	C_i_alpha.resize(_pop->nctrs());
 	for (int i(0); i < _pop->nctrs(); ++i) {
 		add_ctr(env, task, i);
@@ -315,7 +316,7 @@ void SosDualProblem::add_ctr(MSKenv_t & env, MSKtask_t task, int id_ctr) {
 					n = std::max(alpha_i, n);
 					n = std::max(alpha_j, n);
 					ComplexMonomialPtr alpha = it->first + jt->first;
-					ComplexMonomialPtr beta = alpha + term.first;
+					ComplexMonomialPtr beta  = alpha + term.first;
 					//std::cout << "----------------------------" << std::endl;
 					//std::cout << it->first << " | " << jt->first <<" : "<<term.second.real() << " "<<beta<< std::endl;
 					//std::cout << "alpha_i = " << alpha_i << std::endl;
@@ -328,11 +329,11 @@ void SosDualProblem::add_ctr(MSKenv_t & env, MSKtask_t task, int id_ctr) {
 							C_i_alpha[id_ctr][beta][{alpha_j, alpha_i}] = term.second.real();
 						}
 						else {
-							std::cout << "Unfound " << alpha << std::endl;
-							std::cout << "term    " << term.first << std::endl;
-							std::cout << "it      " << it->first << ", " << it->first->degree() << std::endl;
-							std::cout << "jt      " << jt->first << ", " << jt->first->degree() << std::endl;
-							std::cout << "degree  " << degree << std::endl;
+							std::cout << "Unfound  " << alpha << std::endl;
+							std::cout << "term     " << term.first << std::endl;
+							std::cout << "it       " << it->first << ", " << it->first->degree() << std::endl;
+							std::cout << "jt       " << jt->first << ", " << jt->first->degree() << std::endl;
+							std::cout << "degree   " << degree << std::endl;
 							std::cout << "highest  " << highest << std::endl;
 							throw std::invalid_argument("ERROR");
 						}
@@ -360,9 +361,7 @@ void SosDualProblem::add_ctr(MSKenv_t & env, MSKtask_t task, int id_ctr) {
 			}
 		}
 		r = MSK_putbarablocktriplet(task, (int)v.size(), i.data(), j.data(), k.data(), l.data(), v.data());
-		if (r != MSK_RES_OK)throw std::invalid_argument("MSK_putbarablMSK_putbarablocktripletocktriplet ");
-
-
+		if (r != MSK_RES_OK)throw std::invalid_argument("MSK_putbarablocktriplet ");
 		i.clear();
 		j.clear();
 		k.clear();

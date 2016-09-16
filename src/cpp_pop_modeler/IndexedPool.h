@@ -17,8 +17,8 @@ public:
 	std::string _name;
 
 	virtual void fill(StrPtrVector & names)const { throw std::logic_error("NOT IMPLEMENTED"); }
-	virtual int size()const { throw std::logic_error("NOT IMPLEMENTED"); }
-	virtual int first()const { throw std::logic_error("NOT IMPLEMENTED"); }
+	virtual int size()const { return (int)_size; }
+	virtual int first()const { return  _first; }
 
 	virtual int id(int)const { throw std::logic_error("NOT IMPLEMENTED"); }
 	virtual int id(int, int)const { throw std::logic_error("NOT IMPLEMENTED"); }
@@ -101,3 +101,29 @@ public:
 protected:
 	IntPair2Int _id;
 };
+
+class IndexedPool2Square : public IndexedPool {
+public:
+	IndexedPool2Square(std::string const & poolname, StrPtrVector & names, int n, int id) :IndexedPool(poolname, names, n*(n + 1) / 2), _n(n), _id(id) {
+		int i(0);
+		for (int i(0); i < _n; ++i) {
+			for (int j(i); j < _n; ++j)
+			{
+				std::stringstream buffer;
+				buffer << poolname << "[" << i << ", " << j << "]";
+				names[names.size() - _size + i] = std::make_shared<std::string>(buffer.str());
+			}
+		}
+	}
+	virtual ~IndexedPool2Square() {
+
+	}
+
+	virtual int id(int i, int j)const { return _first+i*(2 * _n - i + 1) / 2 + j; }
+
+	int len()const { return _n; }
+protected:
+	int _n;
+	int _id;
+};
+typedef std::shared_ptr<IndexedPool2Square> IndexedPool2SquarePtr;

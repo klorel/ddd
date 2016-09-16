@@ -106,9 +106,6 @@ int main(int argc, char**argv) {
 	//std::cout << "Maximum degree is " << max_degree << std::endl;
 	//return 0;
 
-
-
-
 	//MatPowerData matPowerData;
 	//Timer timer;
 	//matPowerData.read_file(argv[1]);

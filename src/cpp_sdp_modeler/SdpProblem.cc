@@ -343,7 +343,7 @@ void get_sdp_1(SdpProblem & sdp) {
 
 }
 
-void SdpProblem::dual(Matrix & result)const {
+void SdpProblem::dual(Matrix4 & result)const {
 	result.clear();
 	for (auto const & kvp : _matrix) {
 		int const ctr(kvp.first[0]);

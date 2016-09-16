@@ -258,7 +258,7 @@ void SdpSolver::launch_xpress() {
 			mat_value.push_back(kvp.second);
 		}
 	}
-	Matrix dual;
+	Matrix4 dual;
 	_input.dual(dual);
 	int last_zid(-1);
 	// DUAL PART, Z - yA = -C
