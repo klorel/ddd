@@ -6,6 +6,21 @@
 
 typedef void * MSKenv_t;
 typedef void * MSKtask_t;
+class ConicProblem;
+class ConicSolution {
+public:
+	// sdp part of the problem
+	Matrix4 _barx;
+	Matrix4 _bars;
+	// linear part of the problem
+	Matrix2 _x;
+	// dual variables
+	NumberVector _y;
+	// primal obj
+	Number _primal;
+	// dual obj
+	Number _dual;
+};
 
 class ConicProblem {
 public:
@@ -30,6 +45,9 @@ public:
 	void add_lp(int idctr, int idmat, int i, int j, Number v);
 	int new_ctr(Number);
 
+	Number & rhs(int idctr);
+	Number rhs(int idctr) const;
+
 	void build(MSKenv_t & env, MSKtask_t & task);
 	void build_ctr(MSKenv_t & env, MSKtask_t & task);
 	
@@ -38,6 +56,10 @@ public:
 
 	void build_lp_mat(MSKenv_t & env, MSKtask_t & task);
 	void build_sdp_mat(MSKenv_t & env, MSKtask_t & task);
+
+	void get_solution(MSKenv_t & env, MSKtask_t & task, ConicSolution &);
+public:
+	void solve(MSKenv_t & env, MSKtask_t task);
 public:
 	//IntVector _size;
 	//IntVector _begin;

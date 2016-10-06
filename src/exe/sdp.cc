@@ -10,6 +10,13 @@
 #include "SosDualProblem.h"
 #include "PopInstances.h"
 
+#include "mosek.h"
+
+static void MSKAPI printstr_conic(void *handle, MSKCONST char str[])
+{
+	std::cout << str;
+}
+
 void read_graph(std::string const & file_name, SparseMatrix & output, bool complete_graph) {
 	Timer timer;
 	std::ifstream file(file_name.c_str());
@@ -89,12 +96,72 @@ int main(int argc, char**argv) {
 	//p.add(x(1)*x(1) >= x_lb*x_lb);
 	//GetInstance<PROBLEM_2_6>(p);
 	//std::cout << ComplexPolynomial::Pow(0, 4) << std::endl; return 0;
-	GetInstance<PROBLEM_4_6>(p);
+	//GetInstance<PROBLEM_4_6>(p);
 
-	std::cout << p << std::endl;
 
-	SosDualProblem sos(p);
-	sos.run(atoi(argv[1]));
+	//GetInstance<EXAMPLE_2>(p);
+
+	//std::cout << p << std::endl;
+
+	//SosDualProblem sos(p);
+	////sos.run(atoi(argv[1]));
+	//sos.build(atoi(argv[1]));
+
+
+	ConicProblem conic;
+	IndexedPool2Square & X1 = conic.new_block(2, true);
+	IndexedPool2Square & X2 = conic.new_block(3, true);
+	IndexedPool2Square & X3 = conic.new_block(2, true);
+
+	int ctr1 = conic.new_ctr(1);
+	int ctr2 = conic.new_ctr(2);
+
+	conic.add_sdp(0, 0, 0, 0, 2.000000000000000000e+00);
+	conic.add_sdp(0, 0, 0, 1, 1.000000000000000000e+00);
+	conic.add_sdp(0, 0, 1, 1, 2.000000000000000000e+00);
+	conic.add_sdp(0, 1, 0, 0, 3.000000000000000000e+00);
+	conic.add_sdp(0, 1, 0, 2, 1.000000000000000000e+00);
+	conic.add_sdp(0, 1, 1, 1, 2.000000000000000000e+00);
+	conic.add_sdp(0, 1, 2, 2, 3.000000000000000000e+00);
+	conic.add_sdp(1, 0, 0, 0, 3.000000000000000000e+00);
+	conic.add_sdp(1, 0, 0, 1, 1.000000000000000000e+00);
+	conic.add_sdp(1, 0, 1, 1, 3.000000000000000000e+00);
+	conic.add_sdp(1, 2, 0, 0, 1.000000000000000000e+00);
+	conic.add_sdp(2, 1, 0, 0, 3.000000000000000000e+00);
+	conic.add_sdp(2, 1, 1, 1, 4.000000000000000000e+00);
+	conic.add_sdp(2, 1, 2, 2, 5.000000000000000000e+00);
+	conic.add_sdp(2, 1, 0, 2, 1.000000000000000000e+00);
+	conic.add_sdp(2, 2, 1, 1, 1.000000000000000000e+00);
+
+
+	MSKenv_t     env = NULL;
+	MSKtask_t    task = NULL;
+	//
+	MSKrescodee  r = MSK_RES_OK;
+	/* Create the mosek environment. */
+	r = MSK_makeenv(&env, NULL);
+	if (r != MSK_RES_OK)throw std::invalid_argument("MSK_makeenv ");
+
+	/* Create the optimization task. */
+	r = MSK_maketask(env, 0, 0, &task);
+	if (r != MSK_RES_OK)throw std::invalid_argument("MSK_maketask ");
+
+	MSK_linkfunctotaskstream(task, MSK_STREAM_LOG, NULL, printstr_conic);
+	if (r != MSK_RES_OK)throw std::invalid_argument("MSK_linkfunctotaskstream ");
+
+	conic.build(env, task);
+
+	r = MSK_putobjsense(task, MSK_OBJECTIVE_SENSE_MAXIMIZE);
+	if (r != MSK_RES_OK)throw std::invalid_argument("MSK_putobjsense ");
+	//sos._conic.build(env, task);
+
+
+	MSKrescodee trmcode;
+	/* Run optimizer */
+	r = MSK_optimizetrm(task, &trmcode);
+
+	ConicSolution sol;
+	conic.get_solution(env, task, sol);
 
 	//ComplexMonomialPtr2Int monomials;
 	//p.get_all_monomial(monomials);

@@ -61,7 +61,15 @@ void SosDualProblem::set_up_moment(int order) {
 	std::cout << "Number of monomials     is " << _monomial2id.size() << std::endl;
 	std::cout << "Highest monomial degree is " << _monomial2id.rbegin()->first->degree() << std::endl;
 }
-
+void SosDualProblem::build(int order) {
+	set_up_moment(order);
+	build_obj();
+	// part related to the contraints
+	C_i_alpha.resize(_pop->nctrs());
+	for (int i(0); i < _pop->nctrs(); ++i) {
+		build_ctr(i);
+	}
+}
 void SosDualProblem::run(int order) {
 	set_up_moment(order);
 
@@ -435,4 +443,101 @@ std::ostream & SosDualProblem::print(std::ostream & stream)const {
 		std::cout << std::endl;
 	}
 	return stream;
+}
+
+
+void SosDualProblem::build_obj() {
+	IndexedPool2Square & X = _conic.new_block("X", lenbarvar(), true);
+	_conic.add_sdp(0, X.id(), 0, 0, -1);
+	_c.push_back(-1);
+	// no constraint for alpha==0
+	for (int alphaId(1); alphaId < _id2monomial.size(); ++alphaId) {
+		ComplexMonomialPtr const alpha(_id2monomial[alphaId]);
+		for (auto const & ij : _B_alpha[alpha]) {
+			_conic.add_sdp(alphaId, X.id(), ij.first.first, ij.first.second, 1);
+		}
+	}
+	for (int n(0); n < numcon(); ++n)
+		_conic.new_ctr(0);
+	for (auto const & term : _pop->minimize().terms()) {
+		//std::cout << "adding " << term.first << std::endl;
+		ComplexMonomialPtr2Int::const_iterator ite(_monomial2id.find(term.first));
+		if (ite->second != 0) {
+			if (ite != _monomial2id.end()) {
+				_conic.rhs(ite->second) = term.second.real();
+			}
+			else {
+				throw std::invalid_argument("unfound monomial ");
+			}
+		}
+	}
+}
+void SosDualProblem::build_ctr(int id_ctr) {
+	Constraint const & ctr(_pop->ctr(id_ctr));
+	double const lb(ctr.lb().real());
+	double const ub(ctr.ub().real());
+	if (ub != lb && ub != posInfinity() && lb != negInfinity()) {
+		throw std::invalid_argument("RANGE CONSTRAINT DETECTED");
+	}
+
+	if (lb == ub) {
+		// equality constraint results in free variables
+	}
+	else {
+		// inequality constraint results in sdp variables (if <= constraint is multiplied by -1)
+		double const factor(ub != posInfinity() ? -1 : 1);
+		double const bound(ub != posInfinity() ? ub : lb);
+		ComplexPolynomial f_reduced = factor*ctr.f() - bound*factor;
+
+		int const degree(ctr.f().degree());
+		int const highest(_monomial2id.rbegin()->first->degree());
+
+		//std::cout << "degree  " << degree << std::endl;
+		//std::cout << "highest " << highest << std::endl;
+		//std::cout << "factor  " << factor << std::endl;
+		//std::cout << "f_reduced = " << f_reduced << std::endl;
+		int n(-1);
+		for (auto const & term : f_reduced.terms()) {
+			int alpha_i = 0;
+			for (ComplexMonomialPtr2Int::const_iterator it(_monomial2id.begin()); it != _monomial2id.end() && 2 * it->first->degree() + degree <= highest; ++it, ++alpha_i) {
+				int alpha_j = alpha_i;
+				for (ComplexMonomialPtr2Int::const_iterator jt(it); jt != _monomial2id.end() && 2 * jt->first->degree() + degree <= highest; ++jt, ++alpha_j) {
+					n = std::max(alpha_i, n);
+					n = std::max(alpha_j, n);
+					ComplexMonomialPtr alpha = it->first + jt->first;
+					ComplexMonomialPtr beta = alpha + term.first;
+					//std::cout << "----------------------------" << std::endl;
+					//std::cout << it->first << " | " << jt->first <<" : "<<term.second.real() << " "<<beta<< std::endl;
+					//std::cout << "alpha_i = " << alpha_i << std::endl;
+					//std::cout << "alpha_j = " << alpha_j << std::endl;
+					//std::cout << term.second.real() << " " << beta << std::endl;
+					if (beta->degree() > 0 && !isZero(term.second.real())) {
+						ComplexMonomialPtr2Int::const_iterator alphaIt(_monomial2id.find(alpha));
+						ComplexMonomialPtr2Int::const_iterator betaIt(_monomial2id.find(beta));
+						if (alphaIt != _monomial2id.end() && betaIt != _monomial2id.end()) {
+							C_i_alpha[id_ctr][beta][{alpha_j, alpha_i}] = term.second.real();
+						}
+						else {
+							std::cout << "Unfound  " << alpha << std::endl;
+							std::cout << "term     " << term.first << std::endl;
+							std::cout << "it       " << it->first << ", " << it->first->degree() << std::endl;
+							std::cout << "jt       " << jt->first << ", " << jt->first->degree() << std::endl;
+							std::cout << "degree   " << degree << std::endl;
+							std::cout << "highest  " << highest << std::endl;
+							throw std::invalid_argument("ERROR");
+						}
+					}
+				}
+			}
+		}
+		IndexedPool2Square & Z = _conic.new_block(Str("Z_", id_ctr), n + 1, true);
+		for (auto const & term : C_i_alpha[id_ctr]) {
+			ComplexMonomialPtr2Int::const_iterator alphaIt(_monomial2id.find(term.first));
+			for (auto const & ij : term.second) {
+				_conic.add_sdp(alphaIt->second, Z.id(), ij.first.first, ij.first.second, ij.second);
+			}
+		}
+		_conic.add_sdp(0, Z.id(), 0, 0, -f_reduced.constant().real());
+	}
+
 }

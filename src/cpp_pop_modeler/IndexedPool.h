@@ -20,6 +20,7 @@ public:
 	virtual int size()const { return (int)_size; }
 	virtual int first()const { return  _first; }
 
+	virtual int id()const { throw std::logic_error("NOT IMPLEMENTED"); }
 	virtual int id(int)const { throw std::logic_error("NOT IMPLEMENTED"); }
 	virtual int id(int, int)const { throw std::logic_error("NOT IMPLEMENTED"); }
 	virtual int id(int, int, int)const { throw std::logic_error("NOT IMPLEMENTED"); }
@@ -120,8 +121,8 @@ public:
 	}
 
 	virtual int id(int i, int j)const { return _first+i*(2 * _n - i + 1) / 2 + j; }
-
-	int len()const { return _n; }
+	virtual int id()const { return _id; }
+	int dim()const { return _n; }
 protected:
 	int _n;
 	int _id;

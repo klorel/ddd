@@ -17,6 +17,8 @@ public:
 	void set_up_moment(int order);
 	void run(int order);
 
+	void build(int order);
+
 public:
 	int numcon()const;
 	int numbarvar()const;
@@ -25,6 +27,10 @@ public:
 	void add_ctr(MSKenv_t & env, MSKtask_t task, int id_ctr);
 	void solve(MSKenv_t & env, MSKtask_t task);
 	std::ostream & print(std::ostream &)const;
+
+	void build_obj();
+	void build_ctr(int id_ctr);
+
 private:
 	// B_alpha (0) and C_i_alpha (i>0)
 	Matrix4 _matrix;
@@ -40,6 +46,6 @@ private:
 	int _n;
 	NumberVector _y;
 	IntVector _lenbarvar;
-
+public:
 	ConicProblem _conic;
 };

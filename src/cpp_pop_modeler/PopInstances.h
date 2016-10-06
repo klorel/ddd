@@ -25,10 +25,10 @@ template<> inline void GetInstance<EXAMPLE_2>(PolynomialOptimizationProblem & po
 	pop.minimize() = -2 * term3*term3;
 	pop.minimize() = term1*term1 + term2*term2 - 2 * term3*term3;
 
-	double const x_opt(1.3247);
-	double const x_lb(1e-2 + 1.3247);
-	pop.add(x(0)*x(0) >= x_lb*x_lb);
-	pop.add(x(1)*x(1) >= x_lb*x_lb);
+	//double const x_opt(1.3247);
+	//double const x_lb(1e-2 + 1.3247);
+	//pop.add(x(0)*x(0) >= x_lb*x_lb);
+	//pop.add(x(1)*x(1) >= x_lb*x_lb);
 }
 
 template<> inline void GetInstance<PROBLEM_2_6>(PolynomialOptimizationProblem & pop) {
